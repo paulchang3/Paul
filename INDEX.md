@@ -21,7 +21,7 @@
 
 | 檔案 | 最後更新 |
 | --- | --- |
-| [claude.yml](.github/workflows/claude.yml) | (尚未提交) |
+| [claude.yml](.github/workflows/claude.yml) | 2026-06-12 |
 | [monthly-tidy.yml](.github/workflows/monthly-tidy.yml) | 2026-06-12 |
 
 ## docs
@@ -43,6 +43,7 @@
 | [build_knowledge.py](fmea_expert/build_knowledge.py) | 2026-06-12 |
 | [example_usage.py](fmea_expert/example_usage.py) | 2026-06-12 |
 | [extract_docx.py](fmea_expert/extract_docx.py) | 2026-06-12 |
+| [extract_pdf.py](fmea_expert/extract_pdf.py) | (尚未提交) |
 | [knowledge.json](fmea_expert/knowledge.json) | (尚未提交) |
 | [make_sample_docx.py](fmea_expert/make_sample_docx.py) | 2026-06-12 |
 | [ollama_api.py](fmea_expert/ollama_api.py) | 2026-06-12 |

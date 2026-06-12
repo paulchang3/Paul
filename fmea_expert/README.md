@@ -22,7 +22,8 @@
 你的問題 ────────► ask.py ──(問題+相關段落)──► fmea-expert 模型 ──► 回答
 ```
 
-所有程式只用 Python 標準函式庫,不需要 `pip install` 任何套件。
+程式以 Python 標準函式庫為主;唯一的外部套件是讀 PDF 用的 pypdf
+(`pip install pypdf`,不用 PDF 就完全不需要安裝任何東西)。
 
 ## 逐步操作(在你自己的電腦上)
 
@@ -51,9 +52,11 @@ ollama run fmea-expert "S=8 O=4 D=3,RPN 是多少?"   # 測試一下
 成功後 `ollama list` 會看到 `fmea-expert` —— 這就是你專屬的小模型。
 想改它的個性或準則,編輯 `Modelfile` 的 `SYSTEM` 段落後重新 create 即可。
 
-### 步驟 2|放入 Word 文件,建立知識庫
+### 步驟 2|放入文件(.docx / .pdf),建立知識庫
 
-把你的 FMEA 程序書、風險接受準則、評分量表等 `.docx` 放進 `my_docs/`。
+把你的 FMEA 程序書、風險接受準則、標準文件等 `.docx` 與 `.pdf`
+放進 `my_docs/`。PDF 需先 `pip install pypdf`;掃描影像型 PDF 抽不出文字,
+可先用 `python extract_pdf.py my_docs/某文件.pdf` 預覽確認。
 還沒有文件?先產生一份範例:
 
 ```sh
@@ -89,6 +92,47 @@ answer, sources = ask_with_sources("RPN 多少以上不可接受?")
 ```
 
 完整範例見 `example_usage.py`(可直接 `python example_usage.py` 執行)。
+
+## 常用指令速查(步驟 4 之後的日常操作)
+
+> ⚠️ 所有指令都在**終端機(PowerShell)**執行,不是 Ollama 的聊天視窗。
+> 在聊天視窗貼指令,模型只會「演」給你看(模擬輸出),不會真的執行。
+
+### A|強化 / 維護知識庫
+
+| 動作 | 指令 |
+| --- | --- |
+| 新增或修改文件後重建知識庫 | 把檔案放進 `my_docs/` → `python build_knowledge.py` |
+| 確認 PDF 抽得出文字 | `python extract_pdf.py my_docs/某文件.pdf` |
+| 確認 Word 抽取結果 | `python extract_docx.py my_docs/某文件.docx` |
+| 提高檢索段落數(回答引用更多資料) | 程式內 `ask("問題", top_k=8)`(預設 4) |
+| 調整切塊大小 | `extract_docx.py` 內 `max_chars=600`,改 400–800 比較效果後重建 |
+| 換嵌入模型 | `ollama pull 新模型` → 設環境變數 `FMEA_EMBED_MODEL` → 重建 |
+
+### B|回答問題
+
+| 情境 | 指令 |
+| --- | --- |
+| 單次提問(含知識庫檢索) | `python ask.py "充電過熱 S=8 O=4 D=3,請判讀"` |
+| 連續互動問答 | `python ask.py` |
+| 在你自己的 .py 程式中 | `from ask import ask, ask_with_sources` |
+| 純模型、不查知識庫(快速計算) | `ollama run fmea-expert "S=8 O=4 D=3 算 RPN"` |
+
+### C|模型版次管理
+
+Ollama 用「**標籤(tag)**」管理版次,冒號後面就是版號;
+真正的版本歷史則靠 **Modelfile 提交進 Git**(模型隨時可由 Modelfile 重建)。
+
+| 動作 | 指令 |
+| --- | --- |
+| 列出已安裝的模型與版次 | `ollama list` |
+| 查看目前模型的設定 | `ollama show fmea-expert`(加 `--modelfile` 看完整定義) |
+| 修改 Modelfile 後發布新版 | `ollama create fmea-expert:v2 -f Modelfile` |
+| 更新預設版(latest) | `ollama create fmea-expert -f Modelfile` |
+| 備份目前版本 | `ollama cp fmea-expert fmea-expert:backup-20260612` |
+| 使用指定版次回答 | `ollama run fmea-expert:v2`,或設 `FMEA_CHAT_MODEL=fmea-expert:v2` |
+| 刪除舊版釋放空間 | `ollama rm fmea-expert:v1` |
+| 真版控(推薦) | Modelfile 每次修改都 commit 進 Git,訊息寫清楚改了什麼準則 |
 
 ## 常見問題
 
