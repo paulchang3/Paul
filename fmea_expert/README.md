@@ -102,6 +102,9 @@ answer, sources = ask_with_sources("RPN 多少以上不可接受?")
 
 | 動作 | 指令 |
 | --- | --- |
+| **檢查整個環境是否就緒** | `python check_setup.py`(逐項檢查並告訴你缺什麼) |
+| **把檢查報告推上 GitHub 給 Claude 遠端查看** | `python check_setup.py --push` |
+| 完整測試(含一次真實問答) | `python check_setup.py --full` |
 | 新增或修改文件後重建知識庫 | 把檔案放進 `my_docs/` → `python build_knowledge.py` |
 | 確認 PDF 抽得出文字 | `python extract_pdf.py my_docs/某文件.pdf` |
 | 確認 Word 抽取結果 | `python extract_docx.py my_docs/某文件.docx` |

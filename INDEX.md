@@ -41,9 +41,10 @@
 | [__init__.py](fmea_expert/__init__.py) | 2026-06-12 |
 | [ask.py](fmea_expert/ask.py) | 2026-06-12 |
 | [build_knowledge.py](fmea_expert/build_knowledge.py) | 2026-06-12 |
+| [check_setup.py](fmea_expert/check_setup.py) | (尚未提交) |
 | [example_usage.py](fmea_expert/example_usage.py) | 2026-06-12 |
 | [extract_docx.py](fmea_expert/extract_docx.py) | 2026-06-12 |
-| [extract_pdf.py](fmea_expert/extract_pdf.py) | (尚未提交) |
+| [extract_pdf.py](fmea_expert/extract_pdf.py) | 2026-06-12 |
 | [knowledge.json](fmea_expert/knowledge.json) | (尚未提交) |
 | [make_sample_docx.py](fmea_expert/make_sample_docx.py) | 2026-06-12 |
 | [ollama_api.py](fmea_expert/ollama_api.py) | 2026-06-12 |
