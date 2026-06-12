@@ -3,12 +3,11 @@
 # 啟用條件(三項缺一不可):
 #   1. 本檔案存在於預設分支 ✓
 #   2. Claude GitHub App 已安裝且對本倉庫有讀寫權限 ✓
-#   3. 倉庫 Settings → Secrets and variables → Actions 建立密鑰:
-#        ANTHROPIC_API_KEY(到 console.anthropic.com 申請,依用量計費)
-#        —— 或改用 Claude Pro/Max 訂閱:在本機 Claude Code 執行
-#        `claude setup-token` 產生 token,存成 CLAUDE_CODE_OAUTH_TOKEN,
-#        並把下方 anthropic_api_key 那行換成:
-#        claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+#   3. 倉庫 Settings → Secrets and variables → Actions 建立密鑰
+#        CLAUDE_CODE_OAUTH_TOKEN —— 用 Claude Pro/Max 訂閱,
+#        在自己電腦的終端機執行 `claude setup-token` 取得
+#        (改用 API 金鑰計費的話:secret 改名 ANTHROPIC_API_KEY,
+#        並把下方那行換成 anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }})
 #
 # 使用方式:在任何 Issue 或 PR 留言,例如:
 #   @claude 請解釋這段程式碼在做什麼
@@ -38,7 +37,7 @@ jobs:
     steps:
       - uses: anthropics/claude-code-action@v1
         with:
-          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
 
           # 想省費用可改用 Sonnet(品質稍低、便宜約四成):
           # claude_args: |
