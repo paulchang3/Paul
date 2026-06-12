@@ -84,10 +84,13 @@
 在 Claude Code 開啟本倉庫後輸入 `/tidy-github`,AI 會跑報告、修失效連結、
 提改名與分類建議(改名一定先徵求你同意)。
 
-**進階選項**:若想讓「每月整理」也由 AI 全自動執行(自動發 PR 改名、補文件),
-可在 Actions 中加裝 [anthropics/claude-code-action](https://github.com/anthropics/claude-code-action)
-並設定 `ANTHROPIC_API_KEY` secret,把上面的 cron 改成呼叫 Claude。
-這需要 API 付費金鑰,建議先用目前「腳本報告 + 你決定」的模式就很夠用。
+**@claude 留言助理** — [.github/workflows/claude.yml](../.github/workflows/claude.yml)
+已安裝 [anthropics/claude-code-action](https://github.com/anthropics/claude-code-action):
+在任何 Issue / PR 留言 `@claude 請…` 即可呼叫 AI 回答問題、修 bug、開 PR。
+需先在倉庫 Settings → Secrets and variables → Actions 設定 `ANTHROPIC_API_KEY`
+(或 Claude Pro/Max 訂閱者用 `claude setup-token` 產生的 `CLAUDE_CODE_OAUTH_TOKEN`),
+詳見該檔案開頭的註解。搭配每月整理報告 Issue 使用特別方便——
+直接在報告底下留言「@claude 請處理這份報告裡的問題」。
 
 ## 6. 這個倉庫現在就能做的三件事(手動,各 30 秒)
 

@@ -1,0 +1,45 @@
+# Claude Code Action:在 Issue / PR 留言中 @claude 即可呼叫 AI 協作
+#
+# 啟用條件(三項缺一不可):
+#   1. 本檔案存在於預設分支 ✓
+#   2. Claude GitHub App 已安裝且對本倉庫有讀寫權限 ✓
+#   3. 倉庫 Settings → Secrets and variables → Actions 建立密鑰:
+#        ANTHROPIC_API_KEY(到 console.anthropic.com 申請,依用量計費)
+#        —— 或改用 Claude Pro/Max 訂閱:在本機 Claude Code 執行
+#        `claude setup-token` 產生 token,存成 CLAUDE_CODE_OAUTH_TOKEN,
+#        並把下方 anthropic_api_key 那行換成:
+#        claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+#
+# 使用方式:在任何 Issue 或 PR 留言,例如:
+#   @claude 請解釋這段程式碼在做什麼
+#   @claude 幫我修正這個 bug 並開 PR
+name: Claude Assistant
+
+on:
+  issue_comment:
+    types: [created]
+  pull_request_review_comment:
+    types: [created]
+  issues:
+    types: [opened, assigned, labeled]
+  pull_request_review:
+    types: [submitted]
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+  id-token: write
+  actions: read
+
+jobs:
+  claude:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: anthropics/claude-code-action@v1
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+
+          # 想省費用可改用 Sonnet(品質稍低、便宜約四成):
+          # claude_args: |
+          #   --model claude-sonnet-4-6

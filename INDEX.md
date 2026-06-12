@@ -6,8 +6,8 @@
 
 | 檔案 | 最後更新 |
 | --- | --- |
-| [.gitattributes](.gitattributes) | (尚未提交) |
-| [INDEX.md](INDEX.md) | (尚未提交) |
+| [.gitattributes](.gitattributes) | 2026-06-12 |
+| [INDEX.md](INDEX.md) | 2026-06-12 |
 | [README.md](README.md) | 2026-06-12 |
 | [ollama_client.py](ollama_client.py) | 2026-06-11 |
 
@@ -15,19 +15,20 @@
 
 | 檔案 | 最後更新 |
 | --- | --- |
-| [SKILL.md](.claude/skills/tidy-github/SKILL.md) | (尚未提交) |
+| [SKILL.md](.claude/skills/tidy-github/SKILL.md) | 2026-06-12 |
 
 ## .github/workflows
 
 | 檔案 | 最後更新 |
 | --- | --- |
-| [monthly-tidy.yml](.github/workflows/monthly-tidy.yml) | (尚未提交) |
+| [claude.yml](.github/workflows/claude.yml) | (尚未提交) |
+| [monthly-tidy.yml](.github/workflows/monthly-tidy.yml) | 2026-06-12 |
 
 ## docs
 
 | 檔案 | 最後更新 |
 | --- | --- |
-| [github-organization-guide.md](docs/github-organization-guide.md) | (尚未提交) |
+| [github-organization-guide.md](docs/github-organization-guide.md) | 2026-06-12 |
 | [ollama-guide.html](docs/ollama-guide.html) | 2026-06-11 |
 
 ## fmea_expert
@@ -57,4 +58,4 @@
 | 檔案 | 最後更新 |
 | --- | --- |
 | [ollama-up.sh](scripts/ollama-up.sh) | 2026-06-11 |
-| [tidy_repo.py](scripts/tidy_repo.py) | (尚未提交) |
+| [tidy_repo.py](scripts/tidy_repo.py) | 2026-06-12 |
