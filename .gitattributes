@@ -1,2 +1,5 @@
 # 所有文字檔由 Git 自動處理換行符號,避免 Windows/macOS/Linux 混用時整檔變更
 * text=auto
+
+# Windows 批次檔必須用 CRLF 換行
+*.bat text eol=crlf

@@ -7,10 +7,11 @@
 | 檔案 | 最後更新 |
 | --- | --- |
 | [.gitattributes](.gitattributes) | 2026-06-12 |
-| [INDEX.md](INDEX.md) | 2026-06-12 |
+| [INDEX.md](INDEX.md) | 2026-06-13 |
 | [README.md](README.md) | 2026-06-12 |
 | [ollama_client.py](ollama_client.py) | 2026-06-11 |
-| [軟體開發專案管理.py](軟體開發專案管理.py) | (尚未提交) |
+| [軟體開發專案管理.bat](軟體開發專案管理.bat) | (尚未提交) |
+| [軟體開發專案管理.py](軟體開發專案管理.py) | 2026-06-13 |
 
 ## .claude/skills/tidy-github
 
