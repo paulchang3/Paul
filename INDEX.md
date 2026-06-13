@@ -10,6 +10,7 @@
 | [INDEX.md](INDEX.md) | 2026-06-12 |
 | [README.md](README.md) | 2026-06-12 |
 | [ollama_client.py](ollama_client.py) | 2026-06-11 |
+| [軟體開發專案管理.py](軟體開發專案管理.py) | (尚未提交) |
 
 ## .claude/skills/tidy-github
 
@@ -41,7 +42,7 @@
 | [__init__.py](fmea_expert/__init__.py) | 2026-06-12 |
 | [ask.py](fmea_expert/ask.py) | 2026-06-12 |
 | [build_knowledge.py](fmea_expert/build_knowledge.py) | 2026-06-12 |
-| [check_setup.py](fmea_expert/check_setup.py) | (尚未提交) |
+| [check_setup.py](fmea_expert/check_setup.py) | 2026-06-12 |
 | [example_usage.py](fmea_expert/example_usage.py) | 2026-06-12 |
 | [extract_docx.py](fmea_expert/extract_docx.py) | 2026-06-12 |
 | [extract_pdf.py](fmea_expert/extract_pdf.py) | 2026-06-12 |
