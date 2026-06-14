@@ -1,0 +1,160 @@
+2026-06-12 17:44:14 [INFO    ] main                 Multi-Mobile QR Controller 啟動中...
+2026-06-12 17:44:14 [INFO    ] main                 本機 IP：192.168.1.73，服務 URL：http://192.168.1.73:8000
+2026-06-12 17:44:15 [INFO    ] main                 WiFi SSID：NaviFUS2，MAC：fc:6d:77:93:28:94
+2026-06-12 17:44:15 [INFO    ] qrcode_mgr           QR Code 已儲存至 C:\710_製作_開發中\Krename_2606\project\qrcode.png (URL=http://192.168.1.73:8000)
+2026-06-12 17:44:15 [INFO    ] main                 QR Code 已產生：C:\710_製作_開發中\Krename_2606\project\qrcode.png
+2026-06-12 17:44:15 [DEBUG   ] asyncio              Using proactor: IocpProactor
+2026-06-12 17:44:15 [INFO    ] main                 Uvicorn 執行緒已啟動
+2026-06-12 17:44:15 [INFO    ] health_monitor       Health Monitor 已啟動（間隔 5s）
+2026-06-12 17:44:18 [WARNING ] health_monitor       健康異常: Port 8000 未開啟
+2026-06-12 17:44:18 [INFO    ] server               FastAPI 伺服器已啟動
+2026-06-12 17:44:18 [INFO    ] main                 伺服器已就緒：http://192.168.1.73:8000
+2026-06-12 17:48:39 [INFO    ] main                 Multi-Mobile QR Controller 啟動中...
+2026-06-12 17:48:39 [INFO    ] main                 本機 IP：192.168.1.73，服務 URL：http://192.168.1.73:8000
+2026-06-12 17:48:39 [INFO    ] main                 WiFi SSID：NaviFUS2，MAC：fc:6d:77:93:28:94
+2026-06-12 17:48:39 [INFO    ] qrcode_mgr           QR Code 已儲存至 C:\710_製作_開發中\Krename_2606\project\qrcode.png (URL=http://192.168.1.73:8000)
+2026-06-12 17:48:39 [INFO    ] main                 QR Code 已產生：C:\710_製作_開發中\Krename_2606\project\qrcode.png
+2026-06-12 17:48:39 [DEBUG   ] asyncio              Using proactor: IocpProactor
+2026-06-12 17:48:39 [INFO    ] main                 Uvicorn 執行緒已啟動
+2026-06-12 17:48:39 [INFO    ] health_monitor       Health Monitor 已啟動（間隔 5s）
+2026-06-12 17:48:40 [WARNING ] health_monitor       健康異常: Port 8000 未開啟
+2026-06-12 17:48:40 [INFO    ] server               FastAPI 伺服器已啟動
+2026-06-12 17:48:40 [INFO    ] main                 伺服器已就緒：http://192.168.1.73:8000
+2026-06-12 17:48:50 [INFO    ] main                 Multi-Mobile QR Controller 啟動中...
+2026-06-12 17:48:50 [INFO    ] main                 本機 IP：192.168.1.73，服務 URL：http://192.168.1.73:8000
+2026-06-12 17:48:50 [INFO    ] main                 WiFi SSID：NaviFUS2，MAC：fc:6d:77:93:28:94
+2026-06-12 17:48:50 [INFO    ] qrcode_mgr           QR Code 已儲存至 C:\710_製作_開發中\Krename_2606\project\qrcode.png (URL=http://192.168.1.73:8000)
+2026-06-12 17:48:50 [INFO    ] main                 QR Code 已產生：C:\710_製作_開發中\Krename_2606\project\qrcode.png
+2026-06-12 17:48:50 [DEBUG   ] asyncio              Using proactor: IocpProactor
+2026-06-12 17:48:50 [INFO    ] main                 Uvicorn 執行緒已啟動
+2026-06-12 17:48:50 [INFO    ] health_monitor       Health Monitor 已啟動（間隔 5s）
+2026-06-12 17:48:51 [WARNING ] health_monitor       健康異常: Port 8000 未開啟
+2026-06-12 17:48:51 [INFO    ] server               FastAPI 伺服器已啟動
+2026-06-12 17:48:51 [INFO    ] main                 伺服器已就緒：http://192.168.1.73:8000
+2026-06-12 17:51:25 [INFO    ] main                 Multi-Mobile QR Controller 啟動中...
+2026-06-12 17:51:25 [INFO    ] main                 本機 IP：192.168.1.73，服務 URL：http://192.168.1.73:8000
+2026-06-12 17:51:26 [INFO    ] main                 WiFi SSID：NaviFUS2，MAC：fc:6d:77:93:28:94
+2026-06-12 17:51:26 [INFO    ] qrcode_mgr           QR Code 已儲存至 C:\710_製作_開發中\Krename_2606\project\qrcode.png (URL=http://192.168.1.73:8000)
+2026-06-12 17:51:26 [INFO    ] main                 QR Code 已產生：C:\710_製作_開發中\Krename_2606\project\qrcode.png
+2026-06-12 17:51:26 [DEBUG   ] asyncio              Using proactor: IocpProactor
+2026-06-12 17:51:26 [INFO    ] main                 Uvicorn 執行緒已啟動
+2026-06-12 17:51:26 [INFO    ] health_monitor       Health Monitor 已啟動（間隔 5s）
+2026-06-12 17:51:26 [WARNING ] health_monitor       健康異常: Port 8000 未開啟
+2026-06-12 17:51:26 [INFO    ] server               FastAPI 伺服器已啟動
+2026-06-12 17:51:26 [INFO    ] main                 伺服器已就緒：http://192.168.1.73:8000
+2026-06-12 17:52:10 [INFO    ] main                 Multi-Mobile QR Controller 啟動中...
+2026-06-12 17:52:10 [INFO    ] main                 本機 IP：192.168.1.73，服務 URL：http://192.168.1.73:8000
+2026-06-12 17:52:10 [INFO    ] main                 WiFi SSID：NaviFUS2，MAC：fc:6d:77:93:28:94
+2026-06-12 17:52:10 [INFO    ] qrcode_mgr           QR Code 已儲存至 C:\710_製作_開發中\Krename_2606\project\qrcode.png (URL=http://192.168.1.73:8000)
+2026-06-12 17:52:10 [INFO    ] main                 QR Code 已產生：C:\710_製作_開發中\Krename_2606\project\qrcode.png
+2026-06-12 17:52:10 [DEBUG   ] asyncio              Using proactor: IocpProactor
+2026-06-12 17:52:10 [INFO    ] main                 Uvicorn 執行緒已啟動
+2026-06-12 17:52:10 [INFO    ] health_monitor       Health Monitor 已啟動（間隔 5s）
+2026-06-12 17:52:11 [WARNING ] health_monitor       健康異常: Port 8000 未開啟
+2026-06-12 17:52:11 [INFO    ] server               FastAPI 伺服器已啟動
+2026-06-12 17:52:11 [INFO    ] main                 伺服器已就緒：http://192.168.1.73:8000
+2026-06-12 17:52:22 [INFO    ] main                 Multi-Mobile QR Controller 啟動中...
+2026-06-12 17:52:22 [INFO    ] main                 本機 IP：192.168.1.73，服務 URL：http://192.168.1.73:8000
+2026-06-12 17:52:22 [INFO    ] main                 WiFi SSID：NaviFUS2，MAC：fc:6d:77:93:28:94
+2026-06-12 17:52:22 [INFO    ] qrcode_mgr           QR Code 已儲存至 C:\710_製作_開發中\Krename_2606\project\qrcode.png (URL=http://192.168.1.73:8000)
+2026-06-12 17:52:22 [INFO    ] main                 QR Code 已產生：C:\710_製作_開發中\Krename_2606\project\qrcode.png
+2026-06-12 17:52:22 [DEBUG   ] asyncio              Using proactor: IocpProactor
+2026-06-12 17:52:22 [INFO    ] main                 Uvicorn 執行緒已啟動
+2026-06-12 17:52:22 [INFO    ] health_monitor       Health Monitor 已啟動（間隔 5s）
+2026-06-12 17:52:23 [WARNING ] health_monitor       健康異常: Port 8000 未開啟
+2026-06-12 17:52:23 [INFO    ] server               FastAPI 伺服器已啟動
+2026-06-12 17:52:23 [INFO    ] main                 伺服器已就緒：http://192.168.1.73:8000
+2026-06-12 17:55:48 [INFO    ] main                 Multi-Mobile QR Controller 啟動中...
+2026-06-12 17:55:48 [INFO    ] main                 本機 IP：192.168.1.73，服務 URL：http://192.168.1.73:8000
+2026-06-12 17:55:48 [INFO    ] main                 WiFi SSID：NaviFUS2，MAC：fc:6d:77:93:28:94
+2026-06-12 17:55:48 [INFO    ] qrcode_mgr           QR Code 已儲存至 C:\710_製作_開發中\Krename_2606\project\qrcode.png (URL=http://192.168.1.73:8000)
+2026-06-12 17:55:48 [INFO    ] main                 QR Code 已產生：C:\710_製作_開發中\Krename_2606\project\qrcode.png
+2026-06-12 17:55:48 [DEBUG   ] asyncio              Using proactor: IocpProactor
+2026-06-12 17:55:48 [INFO    ] main                 Uvicorn 執行緒已啟動
+2026-06-12 17:55:48 [INFO    ] health_monitor       Health Monitor 已啟動（間隔 5s）
+2026-06-12 17:55:49 [WARNING ] health_monitor       健康異常: Port 8000 未開啟
+2026-06-12 17:55:49 [INFO    ] server               FastAPI 伺服器已啟動
+2026-06-12 17:55:49 [INFO    ] main                 伺服器已就緒：http://192.168.1.73:8000
+2026-06-12 17:55:49 [INFO    ] main                 正在載入 GUI 模組...
+2026-06-12 17:55:49 [INFO    ] main                 GUI 模組載入成功，啟動視窗...
+2026-06-12 17:55:49 [ERROR   ] main                 GUI 啟動失敗：'PySide6.QtWidgets.QTextEdit' object has no attribute 'setMaximumBlockCount'
+2026-06-12 17:55:49 [ERROR   ] main                 詳細錯誤：
+Traceback (most recent call last):
+  File "C:\710_製作_開發中\Krename_2606\project\main.py", line 217, in main
+    run_gui(server_url)
+  File "C:\710_製作_開發中\Krename_2606\project\gui.py", line 462, in run_gui
+    window = MainWindow(server_url)
+             ^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\710_製作_開發中\Krename_2606\project\gui.py", line 210, in __init__
+    self._build_ui()
+  File "C:\710_製作_開發中\Krename_2606\project\gui.py", line 231, in _build_ui
+    left = self._build_left_panel()
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\710_製作_開發中\Krename_2606\project\gui.py", line 255, in _build_left_panel
+    vbox.addWidget(self._build_log_group(), 1)
+                   ^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\710_製作_開發中\Krename_2606\project\gui.py", line 353, in _build_log_group
+    self.log_text.setMaximumBlockCount(400)
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'PySide6.QtWidgets.QTextEdit' object has no attribute 'setMaximumBlockCount'
+
+2026-06-12 17:55:49 [INFO    ] main                 改為無 GUI 模式繼續，伺服器仍在運行
+2026-06-12 17:55:49 [INFO    ] main                 手機請瀏覽：http://192.168.1.73:8000
+2026-06-12 17:56:32 [INFO    ] main                 Multi-Mobile QR Controller 啟動中...
+2026-06-12 17:56:32 [INFO    ] main                 本機 IP：192.168.1.73，服務 URL：http://192.168.1.73:8000
+2026-06-12 17:56:33 [INFO    ] main                 WiFi SSID：NaviFUS2，MAC：fc:6d:77:93:28:94
+2026-06-12 17:56:33 [INFO    ] qrcode_mgr           QR Code 已儲存至 C:\710_製作_開發中\Krename_2606\project\qrcode.png (URL=http://192.168.1.73:8000)
+2026-06-12 17:56:33 [INFO    ] main                 QR Code 已產生：C:\710_製作_開發中\Krename_2606\project\qrcode.png
+2026-06-12 17:56:33 [DEBUG   ] asyncio              Using proactor: IocpProactor
+2026-06-12 17:56:33 [INFO    ] main                 Uvicorn 執行緒已啟動
+2026-06-12 17:56:33 [INFO    ] health_monitor       Health Monitor 已啟動（間隔 5s）
+2026-06-12 17:56:33 [WARNING ] health_monitor       健康異常: Port 8000 未開啟
+2026-06-12 17:56:33 [INFO    ] server               FastAPI 伺服器已啟動
+2026-06-12 17:56:33 [INFO    ] main                 伺服器已就緒：http://192.168.1.73:8000
+2026-06-12 17:56:33 [INFO    ] main                 正在載入 GUI 模組...
+2026-06-12 17:56:33 [INFO    ] main                 GUI 模組載入成功，啟動視窗...
+2026-06-12 17:57:52 [INFO    ] main                 GUI 視窗已關閉
+2026-06-12 17:58:18 [INFO    ] main                 Multi-Mobile QR Controller 啟動中...
+2026-06-12 17:58:18 [INFO    ] main                 本機 IP：192.168.1.73，服務 URL：http://192.168.1.73:8000
+2026-06-12 17:58:18 [INFO    ] main                 WiFi SSID：NaviFUS2，MAC：fc:6d:77:93:28:94
+2026-06-12 17:58:18 [INFO    ] qrcode_mgr           QR Code 已儲存至 C:\710_製作_開發中\Krename_2606\project\qrcode.png (URL=http://192.168.1.73:8000)
+2026-06-12 17:58:18 [INFO    ] main                 QR Code 已產生：C:\710_製作_開發中\Krename_2606\project\qrcode.png
+2026-06-12 17:58:18 [DEBUG   ] asyncio              Using proactor: IocpProactor
+2026-06-12 17:58:18 [INFO    ] main                 Uvicorn 執行緒已啟動
+2026-06-12 17:58:18 [INFO    ] health_monitor       Health Monitor 已啟動（間隔 5s）
+2026-06-12 17:58:19 [WARNING ] health_monitor       健康異常: Port 8000 未開啟
+2026-06-12 17:58:19 [INFO    ] server               FastAPI 伺服器已啟動
+2026-06-12 17:58:19 [INFO    ] main                 伺服器已就緒：http://192.168.1.73:8000
+2026-06-12 17:58:19 [INFO    ] main                 正在載入 GUI 模組...
+2026-06-12 17:58:19 [INFO    ] main                 GUI 模組載入成功，啟動視窗...
+2026-06-12 17:58:58 [INFO    ] main                 GUI 視窗已關閉
+2026-06-12 18:00:08 [INFO    ] main                 Multi-Mobile QR Controller 啟動中...
+2026-06-12 18:00:08 [INFO    ] main                 本機 IP：192.168.1.73，服務 URL：http://192.168.1.73:8000
+2026-06-12 18:00:08 [INFO    ] main                 WiFi SSID：NaviFUS2，MAC：fc:6d:77:93:28:94
+2026-06-12 18:00:08 [INFO    ] qrcode_mgr           QR Code 已儲存至 C:\710_製作_開發中\Krename_2606\project\qrcode.png (URL=http://192.168.1.73:8000)
+2026-06-12 18:00:08 [INFO    ] main                 QR Code 已產生：C:\710_製作_開發中\Krename_2606\project\qrcode.png
+2026-06-12 18:00:08 [DEBUG   ] asyncio              Using proactor: IocpProactor
+2026-06-12 18:00:08 [INFO    ] main                 Uvicorn 執行緒已啟動
+2026-06-12 18:00:08 [INFO    ] health_monitor       Health Monitor 已啟動（間隔 5s）
+2026-06-12 18:00:08 [WARNING ] health_monitor       健康異常: Port 8000 未開啟
+2026-06-12 18:00:08 [INFO    ] server               FastAPI 伺服器已啟動
+2026-06-12 18:00:09 [INFO    ] main                 伺服器已就緒：http://192.168.1.73:8000
+2026-06-12 18:00:09 [INFO    ] main                 正在載入 GUI 模組...
+2026-06-12 18:00:09 [INFO    ] main                 GUI 模組載入成功，啟動視窗...
+2026-06-12 18:01:48 [INFO    ] main                 GUI 視窗已關閉
+2026-06-12 18:03:03 [INFO    ] main                 Multi-Mobile QR Controller 啟動中...
+2026-06-12 18:03:03 [INFO    ] main                 本機 IP：10.48.53.47，服務 URL：http://10.48.53.47:8000
+2026-06-12 18:03:03 [INFO    ] main                 WiFi SSID：Pixel_2989，MAC：fc:6d:77:93:28:94
+2026-06-12 18:03:03 [INFO    ] qrcode_mgr           QR Code 已儲存至 C:\710_製作_開發中\Krename_2606\project\qrcode.png (URL=http://10.48.53.47:8000)
+2026-06-12 18:03:03 [INFO    ] main                 QR Code 已產生：C:\710_製作_開發中\Krename_2606\project\qrcode.png
+2026-06-12 18:03:03 [DEBUG   ] asyncio              Using proactor: IocpProactor
+2026-06-12 18:03:03 [INFO    ] main                 Uvicorn 執行緒已啟動
+2026-06-12 18:03:03 [INFO    ] health_monitor       Health Monitor 已啟動（間隔 5s）
+2026-06-12 18:03:04 [WARNING ] health_monitor       健康異常: Port 8000 未開啟
+2026-06-12 18:03:04 [INFO    ] server               FastAPI 伺服器已啟動
+2026-06-12 18:03:04 [INFO    ] main                 伺服器已就緒：http://10.48.53.47:8000
+2026-06-12 18:03:04 [INFO    ] main                 正在載入 GUI 模組...
+2026-06-12 18:03:04 [INFO    ] main                 GUI 模組載入成功，啟動視窗...
+2026-06-12 18:03:11 [INFO    ] ws_manager           Mobile connected: c79d1f18-7488-453e-a601-662d62f5b5ed (total=1)
+2026-06-12 18:03:11 [INFO    ] server               Mobile init: 手機 A (10.48.53.68)
+2026-06-12 18:04:17 [INFO    ] main                 GUI 視窗已關閉

@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Mobile Controller</title>
+<style>
+  :root {
+    --bg:        #0D1117;
+    --panel:     #161B22;
+    --border:    #30363D;
+    --accent:    #58A6FF;
+    --green:     #3FB950;
+    --red:       #F85149;
+    --text:      #E6EDF3;
+    --dim:       #8B949E;
+    --radius:    12px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: "Segoe UI", "Helvetica Neue", sans-serif;
+    min-height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    touch-action: none;
+  }
+
+  /* ── 頂部狀態列 ── */
+  #statusBar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 16px;
+    background: var(--panel);
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+  #statusBar .led {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    background: var(--red);
+    transition: background .3s;
+  }
+  #statusBar .led.on { background: var(--green); }
+  #deviceName {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--accent);
+  }
+  #colorDot {
+    width: 18px; height: 18px;
+    border-radius: 50%;
+    background: #fff;
+    border: 2px solid var(--border);
+  }
+
+  /* ── 主體 ── */
+  #main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-around;
+    padding: 12px 16px;
+    gap: 10px;
+    overflow-y: auto;
+  }
+
+  /* ── 搖桿容器 ── */
+  #joystickZone {
+    display: none; /* 搖桿模式才顯示 */
+    width: 200px; height: 200px;
+    background: var(--panel);
+    border-radius: 50%;
+    border: 2px solid var(--border);
+    position: relative;
+    touch-action: none;
+  }
+  #joystickKnob {
+    width: 60px; height: 60px;
+    border-radius: 50%;
+    background: var(--accent);
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    transition: background .1s;
+    cursor: grab;
+  }
+
+  /* ── 方向鍵 ── */
+  #dpadZone {
+    display: grid;
+    grid-template-columns: repeat(3, 72px);
+    grid-template-rows: repeat(3, 72px);
+    gap: 6px;
+  }
+
+  .btn {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    color: var(--text);
+    font-size: 22px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    user-select: none;
+    transition: background .1s, transform .05s;
+    -webkit-user-select: none;
+  }
+  .btn:active, .btn.pressed {
+    background: var(--accent);
+    color: #000;
+    transform: scale(0.94);
+  }
+
+  /* d-pad 格局 */
+  .dpad-nw { grid-area: 1/1; }
+  .dpad-n  { grid-area: 1/2; }
+  .dpad-ne { grid-area: 1/3; }
+  .dpad-w  { grid-area: 2/1; }
+  .dpad-c  { grid-area: 2/2; background: #1c2330; } /* 中央重置 */
+  .dpad-e  { grid-area: 2/3; }
+  .dpad-sw { grid-area: 3/1; }
+  .dpad-s  { grid-area: 3/2; }
+  .dpad-se { grid-area: 3/3; }
+
+  /* ── 速度滑桿 ── */
+  #speedRow {
+    width: 100%;
+    max-width: 320px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  #speedRow label { color: var(--dim); font-size: 13px; white-space: nowrap; }
+  #speedSlider {
+    flex: 1;
+    -webkit-appearance: none;
+    height: 6px;
+    border-radius: 3px;
+    background: var(--border);
+    outline: none;
+  }
+  #speedSlider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 20px; height: 20px;
+    border-radius: 50%;
+    background: var(--accent);
+    cursor: pointer;
+  }
+  #speedVal { color: var(--accent); font-size: 13px; font-weight: bold; width: 30px; text-align: right; }
+
+  /* ── 顏色選擇 ── */
+  #colorRow {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  .color-swatch {
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    border: 2px solid transparent;
+    cursor: pointer;
+    transition: transform .1s, border-color .1s;
+  }
+  .color-swatch.active { border-color: #fff; transform: scale(1.2); }
+
+  /* ── 模式切換 ── */
+  #modeRow {
+    display: flex;
+    gap: 8px;
+  }
+  .mode-btn {
+    padding: 8px 18px;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    background: var(--panel);
+    color: var(--dim);
+    font-size: 13px;
+    cursor: pointer;
+    transition: background .15s, color .15s;
+  }
+  .mode-btn.active {
+    background: var(--accent);
+    color: #000;
+    border-color: var(--accent);
+    font-weight: bold;
+  }
+
+  /* ── 拖曳畫布 ── */
+  #dragCanvas {
+    display: none;
+    width: 100%;
+    max-width: 340px;
+    height: 200px;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    touch-action: none;
+    position: relative;
+    overflow: hidden;
+  }
+  #dragDot {
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    background: #fff;
+    position: absolute;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+    box-shadow: 0 0 8px rgba(255,255,255,.5);
+  }
+
+  /* ── 連線中 overlay ── */
+  #connectingOverlay {
+    position: fixed;
+    inset: 0;
+    background: var(--bg);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 999;
+    gap: 16px;
+  }
+  .spinner {
+    width: 44px; height: 44px;
+    border: 4px solid var(--border);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin .8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+
+<!-- 連線中遮罩 -->
+<div id="connectingOverlay">
+  <div class="spinner"></div>
+  <div style="color:var(--dim);font-size:14px;">正在連線伺服器…</div>
+</div>
+
+<!-- 頂部狀態列 -->
+<div id="statusBar">
+  <div class="led" id="wsLed"></div>
+  <div id="deviceName">連線中…</div>
+  <div id="colorDot"></div>
+</div>
+
+<!-- 主體 -->
+<div id="main">
+
+  <!-- 模式切換 -->
+  <div id="modeRow">
+    <div class="mode-btn active" data-mode="dpad"    onclick="setMode('dpad')">方向鍵</div>
+    <div class="mode-btn"        data-mode="joystick" onclick="setMode('joystick')">搖桿</div>
+    <div class="mode-btn"        data-mode="drag"     onclick="setMode('drag')">拖曳</div>
+  </div>
+
+  <!-- 方向鍵 -->
+  <div id="dpadZone">
+    <div class="btn dpad-nw" data-dx="-1" data-dy="-1">↖</div>
+    <div class="btn dpad-n"  data-dx="0"  data-dy="-1">↑</div>
+    <div class="btn dpad-ne" data-dx="1"  data-dy="-1">↗</div>
+    <div class="btn dpad-w"  data-dx="-1" data-dy="0">←</div>
+    <div class="btn dpad-c"  id="resetBtn">⊙</div>
+    <div class="btn dpad-e"  data-dx="1"  data-dy="0">→</div>
+    <div class="btn dpad-sw" data-dx="-1" data-dy="1">↙</div>
+    <div class="btn dpad-s"  data-dx="0"  data-dy="1">↓</div>
+    <div class="btn dpad-se" data-dx="1"  data-dy="1">↘</div>
+  </div>
+
+  <!-- 搖桿 -->
+  <div id="joystickZone">
+    <div id="joystickKnob"></div>
+  </div>
+
+  <!-- 拖曳畫布 -->
+  <div id="dragCanvas">
+    <div id="dragDot"></div>
+  </div>
+
+  <!-- 速度 -->
+  <div id="speedRow">
+    <label>速度</label>
+    <input type="range" id="speedSlider" min="1" max="10" value="5">
+    <span id="speedVal">5</span>
+  </div>
+
+  <!-- 顏色 -->
+  <div id="colorRow">
+    <span style="color:var(--dim);font-size:13px;">顏色：</span>
+  </div>
+
+</div><!-- /main -->
+
+<script>
+// ════════════════════════════════════════════════════════
+//  Controller — WebSocket Client
+// ════════════════════════════════════════════════════════
+
+const COLORS = [
+  "#FF4757","#2ED573","#1E90FF","#FFA502",
+  "#A29BFE","#00CEC9","#FD79A8","#FDCB6E",
+  "#6C5CE7","#55EFC4"
+];
+
+let ws        = null;
+let deviceId  = null;
+let token     = null;
+let speed     = 5;
+let mode      = "dpad";
+let canvasW   = 1000;
+let canvasH   = 700;
+let posX      = 500;
+let posY      = 350;
+let myColor   = "#58A6FF";
+let sendTimer = null;
+let pressedBtns = {};  // dx,dy → intervalId
+
+// ── WebSocket 連線 ────────────────────────────────────────
+
+function connect() {
+  const proto = location.protocol === "https:" ? "wss:" : "ws:";
+  const url   = `${proto}//${location.host}/ws/mobile`;
+  ws = new WebSocket(url);
+
+  ws.onopen = () => {
+    document.getElementById("wsLed").classList.add("on");
+  };
+
+  ws.onmessage = (ev) => {
+    try {
+      const msg = JSON.parse(ev.data);
+      if (msg.type === "init")   handleInit(msg);
+      if (msg.type === "ping")   ws.send(JSON.stringify({type:"pong"}));
+    } catch(e) {}
+  };
+
+  ws.onclose = () => {
+    document.getElementById("wsLed").classList.remove("on");
+    document.getElementById("deviceName").textContent = "已斷線，重新連線中…";
+    setTimeout(connect, 2000);
+  };
+
+  ws.onerror = () => ws.close();
+}
+
+function handleInit(msg) {
+  deviceId = msg.device_id;
+  token    = msg.token;
+  myColor  = msg.color;
+  canvasW  = msg.canvas_w || 1000;
+  canvasH  = msg.canvas_h || 700;
+  posX     = msg.x || canvasW / 2;
+  posY     = msg.y || canvasH / 2;
+
+  document.getElementById("deviceName").textContent = msg.display_name || "手機";
+  document.getElementById("colorDot").style.background = myColor;
+  document.getElementById("connectingOverlay").style.display = "none";
+
+  // 更新拖曳點顏色
+  document.getElementById("dragDot").style.background = myColor;
+
+  // 選中對應顏色格
+  updateColorSwatches();
+}
+
+// ── 傳送控制訊息 ──────────────────────────────────────────
+
+function sendMove(dx, dy) {
+  if (!ws || ws.readyState !== WebSocket.OPEN || !deviceId) return;
+  ws.send(JSON.stringify({
+    type: "move",
+    device_id: deviceId,
+    token,
+    dx, dy,
+    speed: speed / 5.0,
+  }));
+}
+
+function sendPosition(x, y) {
+  if (!ws || ws.readyState !== WebSocket.OPEN || !deviceId) return;
+  ws.send(JSON.stringify({
+    type: "set_position",
+    device_id: deviceId,
+    token, x, y,
+  }));
+}
+
+function sendReset() {
+  if (!ws || ws.readyState !== WebSocket.OPEN || !deviceId) return;
+  ws.send(JSON.stringify({
+    type: "reset",
+    device_id: deviceId,
+    token,
+  }));
+  posX = canvasW / 2;
+  posY = canvasH / 2;
+  updateDragDot();
+}
+
+// ── 方向鍵 ────────────────────────────────────────────────
+
+const REPEAT_INTERVAL = 16; // ~60fps
+
+function dpadStart(btn) {
+  const dx = parseFloat(btn.dataset.dx);
+  const dy = parseFloat(btn.dataset.dy);
+  const key = `${dx},${dy}`;
+  if (pressedBtns[key]) return;
+  btn.classList.add("pressed");
+  sendMove(dx, dy);
+  pressedBtns[key] = setInterval(() => sendMove(dx, dy), REPEAT_INTERVAL);
+}
+
+function dpadEnd(btn) {
+  const dx = parseFloat(btn.dataset.dx);
+  const dy = parseFloat(btn.dataset.dy);
+  const key = `${dx},${dy}`;
+  clearInterval(pressedBtns[key]);
+  delete pressedBtns[key];
+  btn.classList.remove("pressed");
+}
+
+document.querySelectorAll(".btn[data-dx]").forEach(btn => {
+  btn.addEventListener("pointerdown",  (e) => { e.preventDefault(); dpadStart(btn); });
+  btn.addEventListener("pointerup",    (e) => { e.preventDefault(); dpadEnd(btn); });
+  btn.addEventListener("pointerleave", (e) => { dpadEnd(btn); });
+  btn.addEventListener("pointercancel",(e) => { dpadEnd(btn); });
+});
+
+document.getElementById("resetBtn").addEventListener("pointerdown", (e) => {
+  e.preventDefault();
+  sendReset();
+});
+
+// ── 速度滑桿 ──────────────────────────────────────────────
+
+document.getElementById("speedSlider").addEventListener("input", (e) => {
+  speed = parseInt(e.target.value);
+  document.getElementById("speedVal").textContent = speed;
+});
+
+// ── 搖桿 ─────────────────────────────────────────────────
+
+const joystickZone = document.getElementById("joystickZone");
+const knob         = document.getElementById("joystickKnob");
+let joyActive = false, joyOriginX = 0, joyOriginY = 0, joyTimer = null;
+
+function joystickStart(e) {
+  e.preventDefault();
+  joyActive = true;
+  const rect = joystickZone.getBoundingClientRect();
+  joyOriginX = rect.left + rect.width  / 2;
+  joyOriginY = rect.top  + rect.height / 2;
+  joyTimer = setInterval(joystickTick, REPEAT_INTERVAL);
+}
+
+function joystickMove(e) {
+  if (!joyActive) return;
+  e.preventDefault();
+  const touch = e.touches ? e.touches[0] : e;
+  const cx = joystickZone.getBoundingClientRect().width  / 2;
+  const cy = joystickZone.getBoundingClientRect().height / 2;
+  const maxR = cx - 30;
+  let dx = touch.clientX - joyOriginX;
+  let dy = touch.clientY - joyOriginY;
+  const dist = Math.hypot(dx, dy);
+  if (dist > maxR) {
+    dx = dx / dist * maxR;
+    dy = dy / dist * maxR;
+  }
+  knob.style.left = (cx + dx) + "px";
+  knob.style.top  = (cy + dy) + "px";
+
+  // 正規化到 [-1, 1]
+  knob._ndx = dx / maxR;
+  knob._ndy = dy / maxR;
+}
+
+function joystickEnd(e) {
+  joyActive = false;
+  clearInterval(joyTimer);
+  knob.style.left = "50%";
+  knob.style.top  = "50%";
+  knob._ndx = 0; knob._ndy = 0;
+}
+
+function joystickTick() {
+  if (Math.abs(knob._ndx||0) > 0.05 || Math.abs(knob._ndy||0) > 0.05)
+    sendMove(knob._ndx || 0, knob._ndy || 0);
+}
+
+joystickZone.addEventListener("pointerdown",  joystickStart);
+joystickZone.addEventListener("pointermove",  joystickMove);
+joystickZone.addEventListener("pointerup",    joystickEnd);
+joystickZone.addEventListener("pointercancel",joystickEnd);
+
+// ── 拖曳模式 ──────────────────────────────────────────────
+
+const dragCanvas = document.getElementById("dragCanvas");
+const dragDot    = document.getElementById("dragDot");
+
+function updateDragDot() {
+  const rect = dragCanvas.getBoundingClientRect();
+  const rx = posX / canvasW;
+  const ry = posY / canvasH;
+  dragDot.style.left = (rx * rect.width)  + "px";
+  dragDot.style.top  = (ry * rect.height) + "px";
+}
+
+dragCanvas.addEventListener("pointermove", (e) => {
+  if (e.buttons === 0) return;
+  e.preventDefault();
+  const rect = dragCanvas.getBoundingClientRect();
+  const rx = (e.clientX - rect.left) / rect.width;
+  const ry = (e.clientY - rect.top)  / rect.height;
+  posX = Math.max(0, Math.min(canvasW, rx * canvasW));
+  posY = Math.max(0, Math.min(canvasH, ry * canvasH));
+  updateDragDot();
+  sendPosition(posX, posY);
+});
+
+dragCanvas.addEventListener("pointerdown", (e) => {
+  e.preventDefault();
+  dragCanvas.setPointerCapture(e.pointerId);
+  const rect = dragCanvas.getBoundingClientRect();
+  const rx = (e.clientX - rect.left) / rect.width;
+  const ry = (e.clientY - rect.top)  / rect.height;
+  posX = rx * canvasW;
+  posY = ry * canvasH;
+  updateDragDot();
+  sendPosition(posX, posY);
+});
+
+// ── 模式切換 ──────────────────────────────────────────────
+
+function setMode(m) {
+  mode = m;
+  document.querySelectorAll(".mode-btn").forEach(b =>
+    b.classList.toggle("active", b.dataset.mode === m)
+  );
+  document.getElementById("dpadZone").style.display    = m === "dpad"     ? "grid"  : "none";
+  document.getElementById("joystickZone").style.display = m === "joystick" ? "flex"  : "none";
+  document.getElementById("dragCanvas").style.display   = m === "drag"     ? "block" : "none";
+  if (m === "drag") updateDragDot();
+}
+
+// ── 顏色選擇器 ────────────────────────────────────────────
+
+function updateColorSwatches() {
+  const row = document.getElementById("colorRow");
+  // 移除舊格（保留 label span）
+  [...row.querySelectorAll(".color-swatch")].forEach(el => el.remove());
+  COLORS.forEach(c => {
+    const sw = document.createElement("div");
+    sw.className = "color-swatch" + (c === myColor ? " active" : "");
+    sw.style.background = c;
+    sw.addEventListener("click", () => {
+      myColor = c;
+      document.getElementById("colorDot").style.background = c;
+      document.getElementById("dragDot").style.background  = c;
+      row.querySelectorAll(".color-swatch").forEach(s =>
+        s.classList.toggle("active", s.style.background === c)
+      );
+    });
+    row.appendChild(sw);
+  });
+}
+updateColorSwatches();
+
+// ── 啟動 ─────────────────────────────────────────────────
+
+connect();
+</script>
+</body>
+</html>

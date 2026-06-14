@@ -1,0 +1,43 @@
+Multi-Mobile QR Controller — 完整專案架構
+==========================================
+
+project/
+│
+├── main.py                  # 程式進入點（環境檢查 → QR → 伺服器 → GUI）
+├── installer.py             # 自動環境檢查與套件安裝
+├── config.py                # 全域設定常數
+├── server.py                # FastAPI 主伺服器（HTTP + WebSocket 路由）
+├── websocket_manager.py     # WebSocket 連線池（廣播、心跳、佇列）
+├── device_manager.py        # 裝置管理（UUID、Token、座標、顏色）
+├── qrcode_manager.py        # QR Code 產生與 Base64 轉換
+├── health_monitor.py        # 健康監控（CPU/RAM/Port/FPS 每 5 秒檢查）
+├── gui.py                   # PySide6 桌面 GUI（深色主題、WebView 畫布）
+│
+├── requirements.txt         # Python 套件清單
+├── deploy.bat               # 一鍵啟動（建 venv + 安裝套件 + 開放防火牆）
+├── build_exe.py             # PyInstaller 打包成 exe
+├── auto_update.py           # 從 GitHub Releases 自動更新
+│
+├── templates/
+│   ├── controller.html      # 手機控制器頁面（方向鍵/搖桿/拖曳）
+│   └── screen.html          # 桌面測試畫布（60FPS Canvas + 插值平滑）
+│
+├── static/
+│   ├── css/
+│   │   └── style.css        # Toast/tooltip/捲軸 輔助樣式
+│   ├── js/
+│   │   └── utils.js         # lerp/throttle/debounce 前端工具
+│   └── images/              # 存放 icon.ico 等圖示資源
+│
+├── tests/
+│   ├── __init__.py
+│   ├── test_device_manager.py   # 裝置管理器單元測試
+│   └── test_server.py           # FastAPI HTTP 整合測試
+│
+├── logs/                    # 自動建立（每日輪替）
+│   ├── system.log
+│   ├── error.log
+│   ├── connection.log
+│   └── performance.log
+│
+└── qrcode.png               # 啟動後自動產生的 QR Code 圖片

@@ -1,0 +1,59 @@
+/* style.css - 通用輔助樣式（手機控制器額外覆蓋） */
+
+/* ── 動畫 ── */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.5; }
+}
+
+.fade-in { animation: fadeIn 0.3s ease forwards; }
+.pulse   { animation: pulse 1.5s ease infinite; }
+
+/* ── Toast 通知 ── */
+.toast {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #161B22;
+  border: 1px solid #30363D;
+  border-radius: 24px;
+  padding: 10px 20px;
+  color: #E6EDF3;
+  font-size: 13px;
+  z-index: 9999;
+  animation: fadeIn 0.25s ease;
+  white-space: nowrap;
+}
+
+/* ── 工具提示 ── */
+[data-tip] {
+  position: relative;
+}
+[data-tip]::after {
+  content: attr(data-tip);
+  position: absolute;
+  bottom: 110%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #30363D;
+  color: #E6EDF3;
+  font-size: 11px;
+  padding: 4px 8px;
+  border-radius: 4px;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity .2s;
+}
+[data-tip]:hover::after { opacity: 1; }
+
+/* ── 捲軸美化 ── */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: #0D1117; }
+::-webkit-scrollbar-thumb { background: #30363D; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #58A6FF; }

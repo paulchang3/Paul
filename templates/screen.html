@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<title>Test Canvas</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: #0D1117;
+    overflow: hidden;
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  #canvasWrap {
+    position: relative;
+    background: #0A0E14;
+    border: 1px solid #30363D;
+    border-radius: 10px;
+    overflow: hidden;
+  }
+
+  canvas { display: block; }
+
+  /* FPS / 連線數 overlay */
+  #hud {
+    position: absolute;
+    top: 10px; left: 10px;
+    color: #8B949E;
+    font-family: "Consolas", monospace;
+    font-size: 12px;
+    line-height: 1.6;
+    pointer-events: none;
+    text-shadow: 0 0 4px #000;
+  }
+  #hud span { color: #58A6FF; }
+</style>
+</head>
+<body>
+<div id="canvasWrap">
+  <canvas id="canvas"></canvas>
+  <div id="hud">
+    FPS: <span id="fpsVal">0</span> &nbsp;|&nbsp;
+    連線: <span id="connVal">0</span>
+  </div>
+</div>
+
+<script>
+// ════════════════════════════════════════════════════════
+//  Screen Canvas — WebSocket Receiver
+// ════════════════════════════════════════════════════════
+
+const CANVAS_W = {{ canvas_w }};
+const CANVAS_H = {{ canvas_h }};
+const DOT_R    = 18;
+
+const canvas = document.getElementById("canvas");
+const ctx    = canvas.getContext("2d");
+
+// 響應式縮放
+let scale = 1;
+function resize() {
+  const maxW = window.innerWidth  - 32;
+  const maxH = window.innerHeight - 32;
+  scale = Math.min(maxW / CANVAS_W, maxH / CANVAS_H, 1);
+  canvas.width  = CANVAS_W * scale;
+  canvas.height = CANVAS_H * scale;
+  canvas.style.width  = canvas.width  + "px";
+  canvas.style.height = canvas.height + "px";
+}
+resize();
+window.addEventListener("resize", resize);
+
+// ── 裝置狀態 ──────────────────────────────────────────────
+let devices = {};  // device_id → {x, y, color, display_name, ...}
+
+// ── 平滑插值 ──────────────────────────────────────────────
+const LERP = 0.25;  // 插值係數（愈大愈跟手）
+let renderDevices = {};  // device_id → {x, y, color, ...} (繪製用)
+
+// ── WebSocket ─────────────────────────────────────────────
+let ws;
+
+function connect() {
+  const proto = location.protocol === "https:" ? "wss:" : "ws:";
+  ws = new WebSocket(`${proto}//${location.host}/ws/screen`);
+
+  ws.onmessage = (ev) => {
+    try {
+      const msg = JSON.parse(ev.data);
+      if (msg.type === "init" || msg.type === "update" || msg.type === "device_joined" || msg.type === "device_left") {
+        const arr = msg.devices || [];
+        // 更新狀態
+        const newMap = {};
+        arr.forEach(d => { newMap[d.device_id] = d; });
+        devices = newMap;
+        document.getElementById("connVal").textContent =
+          arr.filter(d => d.connected).length;
+      }
+    } catch(e) {}
+  };
+
+  ws.onclose = () => setTimeout(connect, 1500);
+  ws.onerror = () => ws.close();
+}
+connect();
+
+// ── 繪製迴圈 ──────────────────────────────────────────────
+let lastTime = 0;
+let frameCount = 0;
+let fpsTimer = 0;
+let displayFPS = 0;
+
+function lerp(a, b, t) { return a + (b - a) * t; }
+
+function draw(ts) {
+  requestAnimationFrame(draw);
+
+  const dt = ts - lastTime;
+  lastTime = ts;
+  frameCount++;
+  fpsTimer += dt;
+  if (fpsTimer >= 500) {
+    displayFPS = Math.round(frameCount / (fpsTimer / 1000));
+    frameCount = 0;
+    fpsTimer = 0;
+    document.getElementById("fpsVal").textContent = displayFPS;
+  }
+
+  // 清除背景
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  // 網格線
+  drawGrid();
+
+  // 插值並繪製每個裝置
+  Object.keys(devices).forEach(id => {
+    const target = devices[id];
+    if (!renderDevices[id]) {
+      renderDevices[id] = { ...target };
+    }
+    const r = renderDevices[id];
+    r.x     = lerp(r.x,     target.x * scale, LERP);
+    r.y     = lerp(r.y,     target.y * scale, LERP);
+    r.color = target.color;
+    r.display_name = target.display_name;
+    r.connected    = target.connected;
+
+    drawDot(r);
+  });
+
+  // 清除已離線超久的點
+  Object.keys(renderDevices).forEach(id => {
+    if (!devices[id]) delete renderDevices[id];
+  });
+}
+
+function drawGrid() {
+  ctx.save();
+  ctx.strokeStyle = "#1C2333";
+  ctx.lineWidth = 1;
+  const step = 50 * scale;
+  for (let x = 0; x < canvas.width; x += step) {
+    ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); ctx.stroke();
+  }
+  for (let y = 0; y < canvas.height; y += step) {
+    ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke();
+  }
+  ctx.restore();
+}
+
+function drawDot(dev) {
+  const { x, y, color, display_name, connected } = dev;
+  const r = DOT_R * scale;
+
+  ctx.save();
+
+  // 離線時半透明
+  if (!connected) ctx.globalAlpha = 0.3;
+
+  // 光暈
+  const glow = ctx.createRadialGradient(x, y, r * 0.3, x, y, r * 2);
+  glow.addColorStop(0, color + "88");
+  glow.addColorStop(1, "transparent");
+  ctx.beginPath();
+  ctx.arc(x, y, r * 2, 0, Math.PI * 2);
+  ctx.fillStyle = glow;
+  ctx.fill();
+
+  // 圓點本體
+  ctx.beginPath();
+  ctx.arc(x, y, r, 0, Math.PI * 2);
+  ctx.fillStyle = color;
+  ctx.shadowColor = color;
+  ctx.shadowBlur  = 12;
+  ctx.fill();
+
+  // 白色邊框
+  ctx.strokeStyle = "rgba(255,255,255,0.4)";
+  ctx.lineWidth   = 2 * scale;
+  ctx.stroke();
+
+  // 名稱標籤
+  ctx.shadowBlur = 0;
+  ctx.font        = `bold ${Math.round(11 * scale)}px "Segoe UI", sans-serif`;
+  ctx.fillStyle   = "#fff";
+  ctx.textAlign   = "center";
+  ctx.textBaseline = "middle";
+  ctx.fillText(display_name || "?", x, y);
+
+  ctx.restore();
+}
+
+requestAnimationFrame(draw);
+</script>
+</body>
+</html>
