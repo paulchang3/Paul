@@ -6,11 +6,11 @@
 
 | 檔案 | 最後更新 |
 | --- | --- |
-| [.gitattributes](.gitattributes) | 2026-06-12 |
+| [.gitattributes](.gitattributes) | 2026-06-13 |
 | [INDEX.md](INDEX.md) | 2026-06-13 |
 | [README.md](README.md) | 2026-06-12 |
 | [ollama_client.py](ollama_client.py) | 2026-06-11 |
-| [軟體開發專案管理.bat](軟體開發專案管理.bat) | (尚未提交) |
+| [軟體開發專案管理.bat](軟體開發專案管理.bat) | 2026-06-13 |
 | [軟體開發專案管理.py](軟體開發專案管理.py) | 2026-06-13 |
 
 ## .claude/skills/tidy-github
@@ -33,6 +33,24 @@
 | [github-organization-guide.md](docs/github-organization-guide.md) | 2026-06-12 |
 | [ollama-guide.html](docs/ollama-guide.html) | 2026-06-11 |
 
+## docs/cloudeip-reverse-engineering
+
+| 檔案 | 最後更新 |
+| --- | --- |
+| [00-evidence-log.md](docs/cloudeip-reverse-engineering/00-evidence-log.md) | (尚未提交) |
+| [README.md](docs/cloudeip-reverse-engineering/README.md) | (尚未提交) |
+| [phase-01-capability-matrix.md](docs/cloudeip-reverse-engineering/phase-01-capability-matrix.md) | (尚未提交) |
+| [phase-02-architecture.md](docs/cloudeip-reverse-engineering/phase-02-architecture.md) | (尚未提交) |
+| [phase-03-workflow-engine.md](docs/cloudeip-reverse-engineering/phase-03-workflow-engine.md) | (尚未提交) |
+| [phase-04-form-engine.md](docs/cloudeip-reverse-engineering/phase-04-form-engine.md) | (尚未提交) |
+| [phase-05-permission-architecture.md](docs/cloudeip-reverse-engineering/phase-05-permission-architecture.md) | (尚未提交) |
+| [phase-06-integration-framework.md](docs/cloudeip-reverse-engineering/phase-06-integration-framework.md) | (尚未提交) |
+| [phase-07-tech-stack-estimation.md](docs/cloudeip-reverse-engineering/phase-07-tech-stack-estimation.md) | (尚未提交) |
+| [phase-08-nextgen-design.md](docs/cloudeip-reverse-engineering/phase-08-nextgen-design.md) | (尚未提交) |
+| [phase-09-development-blueprint.md](docs/cloudeip-reverse-engineering/phase-09-development-blueprint.md) | (尚未提交) |
+| [phase-10-project-generation.md](docs/cloudeip-reverse-engineering/phase-10-project-generation.md) | (尚未提交) |
+| [phase-11-weaknesses.md](docs/cloudeip-reverse-engineering/phase-11-weaknesses.md) | (尚未提交) |
+
 ## fmea_expert
 
 | 檔案 | 最後更新 |
@@ -47,15 +65,8 @@
 | [example_usage.py](fmea_expert/example_usage.py) | 2026-06-12 |
 | [extract_docx.py](fmea_expert/extract_docx.py) | 2026-06-12 |
 | [extract_pdf.py](fmea_expert/extract_pdf.py) | 2026-06-12 |
-| [knowledge.json](fmea_expert/knowledge.json) | (尚未提交) |
 | [make_sample_docx.py](fmea_expert/make_sample_docx.py) | 2026-06-12 |
 | [ollama_api.py](fmea_expert/ollama_api.py) | 2026-06-12 |
-
-## fmea_expert/my_docs
-
-| 檔案 | 最後更新 |
-| --- | --- |
-| [FMEA知識範例.docx](fmea_expert/my_docs/FMEA知識範例.docx) | (尚未提交) |
 
 ## scripts
 

@@ -11,6 +11,7 @@ sandboxes.
 **導覽**:[檔案索引 INDEX.md](INDEX.md) ・
 [GitHub 整理指南](docs/github-organization-guide.md)(命名/編碼/分類/連結規則)・
 [Ollama 環境說明(HTML)](docs/ollama-guide.html) ・
+[CloudEIP 架構逆向工程報告](docs/cloudeip-reverse-engineering/README.md)(11 階段 + Mermaid 圖)・
 每月 1 日自動執行[整理工作流程](.github/workflows/monthly-tidy.yml)並開報告 Issue。
 
 ## Quick start
