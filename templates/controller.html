@@ -220,6 +220,61 @@
     box-shadow: 0 0 8px rgba(255,255,255,.5);
   }
 
+  /* ── 滑鼠觸控板（第一台手機）── */
+  #touchpad {
+    display: none;
+    width: 100%;
+    max-width: 340px;
+    height: 230px;
+    background: var(--panel);
+    border: 1px dashed var(--accent);
+    border-radius: var(--radius);
+    touch-action: none;
+    position: relative;
+    overflow: hidden;
+    user-select: none;
+  }
+  #touchpad .hint {
+    position: absolute; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    text-align: center; color: var(--dim); font-size: 13px; line-height: 1.7;
+    pointer-events: none; padding: 12px;
+  }
+
+  /* ── 角色橫幅（你是滑鼠）── */
+  #roleBanner {
+    display: none;
+    width: 100%; max-width: 340px;
+    background: rgba(63,185,80,.15);
+    border: 1px solid var(--green);
+    color: var(--green);
+    border-radius: var(--radius);
+    padding: 8px 12px; font-size: 13px; text-align: center; font-weight: 600;
+  }
+  #roleBanner.show { display: block; }
+
+  /* ── 上傳照片 ── */
+  #photoRow {
+    display: flex; align-items: center; gap: 10px;
+    width: 100%; max-width: 340px; justify-content: center;
+  }
+  #photoBtn {
+    flex: 1;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    color: var(--text);
+    border-radius: var(--radius);
+    padding: 10px; font-size: 14px; cursor: pointer;
+  }
+  #photoBtn:active { background: var(--accent); color: #000; }
+  #photoPreview {
+    width: 40px; height: 40px; border-radius: 50%;
+    border: 2px solid var(--border);
+    background-size: cover; background-position: center;
+    display: none;
+  }
+  #photoPreview.show { display: block; }
+
   /* ── 連線中 overlay ── */
   #connectingOverlay {
     position: fixed;
@@ -260,11 +315,15 @@
 <!-- 主體 -->
 <div id="main">
 
+  <!-- 角色橫幅：你是第一台（滑鼠） -->
+  <div id="roleBanner">🖱️ 你是第一台手機 ＝ 滑鼠</div>
+
   <!-- 模式切換 -->
   <div id="modeRow">
     <div class="mode-btn active" data-mode="dpad"    onclick="setMode('dpad')">方向鍵</div>
     <div class="mode-btn"        data-mode="joystick" onclick="setMode('joystick')">搖桿</div>
     <div class="mode-btn"        data-mode="drag"     onclick="setMode('drag')">拖曳</div>
+    <div class="mode-btn"        data-mode="mouse"    onclick="setMode('mouse')">滑鼠</div>
   </div>
 
   <!-- 方向鍵 -->
@@ -288,6 +347,18 @@
   <!-- 拖曳畫布 -->
   <div id="dragCanvas">
     <div id="dragDot"></div>
+  </div>
+
+  <!-- 滑鼠觸控板（第一台手機操控真實滑鼠）-->
+  <div id="touchpad">
+    <div class="hint">滑鼠觸控板<br>滑動＝移動游標　單擊＝選擇<br>雙擊＝啟動　雙指上下＝滾輪</div>
+  </div>
+
+  <!-- 上傳照片（顯示在圓圈裡）-->
+  <div id="photoRow">
+    <button id="photoBtn" type="button">上傳照片（圓圈圖案）</button>
+    <div id="photoPreview"></div>
+    <input id="photoInput" type="file" accept="image/*" style="display:none">
   </div>
 
   <!-- 速度 -->
@@ -327,6 +398,8 @@ let posY      = 350;
 let myColor   = "#58A6FF";
 let sendTimer = null;
 let pressedBtns = {};  // dx,dy → intervalId
+let isFirst   = false; // 是否為第一台手機（= 滑鼠）
+let autoPickedMouse = false; // 是否已自動切到滑鼠模式（只做一次）
 
 // ── WebSocket 連線 ────────────────────────────────────────
 
@@ -344,6 +417,7 @@ function connect() {
       const msg = JSON.parse(ev.data);
       if (msg.type === "init")   handleInit(msg);
       if (msg.type === "ping")   ws.send(JSON.stringify({type:"pong"}));
+      if (msg.type === "role")   updateRole(msg.first_device_id);
     } catch(e) {}
   };
 
@@ -374,6 +448,42 @@ function handleInit(msg) {
 
   // 選中對應顏色格
   updateColorSwatches();
+
+  // 角色（是否第一台 = 滑鼠）
+  isFirst = !!msg.is_first;
+  applyRole();
+}
+
+// ── 角色：第一台手機 = 滑鼠 ───────────────────────────────────────────────
+
+function updateRole(firstDeviceId) {
+  isFirst = (firstDeviceId && firstDeviceId === deviceId);
+  applyRole();
+}
+
+function applyRole() {
+  const banner = document.getElementById("roleBanner");
+  banner.classList.toggle("show", isFirst);
+  // 第一台手機第一次得到角色時，自動切到「滑鼠」模式（只做一次，之後尊重使用者選擇）
+  if (isFirst && !autoPickedMouse) {
+    autoPickedMouse = true;
+    setMode("mouse");
+  }
+}
+
+// ── 滑鼠動作訊息 ──────────────────────────────────────────────────────────
+
+function sendClick() {
+  if (!ws || ws.readyState !== WebSocket.OPEN || !deviceId) return;
+  ws.send(JSON.stringify({ type:"click", device_id:deviceId, token }));
+}
+function sendDblClick() {
+  if (!ws || ws.readyState !== WebSocket.OPEN || !deviceId) return;
+  ws.send(JSON.stringify({ type:"dblclick", device_id:deviceId, token }));
+}
+function sendScroll(amount) {
+  if (!ws || ws.readyState !== WebSocket.OPEN || !deviceId) return;
+  ws.send(JSON.stringify({ type:"scroll", device_id:deviceId, token, amount }));
 }
 
 // ── 傳送控制訊息 ──────────────────────────────────────────
@@ -551,10 +661,176 @@ function setMode(m) {
   document.querySelectorAll(".mode-btn").forEach(b =>
     b.classList.toggle("active", b.dataset.mode === m)
   );
-  document.getElementById("dpadZone").style.display    = m === "dpad"     ? "grid"  : "none";
+  document.getElementById("dpadZone").style.display     = m === "dpad"     ? "grid"  : "none";
   document.getElementById("joystickZone").style.display = m === "joystick" ? "flex"  : "none";
   document.getElementById("dragCanvas").style.display   = m === "drag"     ? "block" : "none";
+  document.getElementById("touchpad").style.display     = m === "mouse"    ? "block" : "none";
   if (m === "drag") updateDragDot();
+}
+
+// ── 滑鼠觸控板：移動 / 單擊 / 雙擊 / 雙指捲動 ─────────────────────────────────
+
+const touchpad = document.getElementById("touchpad");
+const pointers = new Map();            // pointerId → {x, y}
+let tapStart   = null;                 // {x, y, t, moved}
+let lastTapTime = 0;
+let pendingClickTimer = null;
+let scrollLastAvgY = null;
+let scrollAccum = 0;
+
+const TAP_MAX_MS   = 250;   // 點擊判定的最長時間
+const TAP_MAX_MOVE = 12;    // 點擊判定的最大位移（px）
+const DBL_GAP_MS   = 300;   // 雙擊間隔
+const SCROLL_STEP  = 36;    // 每多少 px 觸發一格滾輪
+
+function padToCanvas(clientX, clientY) {
+  const rect = touchpad.getBoundingClientRect();
+  const rx = (clientX - rect.left) / rect.width;
+  const ry = (clientY - rect.top)  / rect.height;
+  return {
+    x: Math.max(0, Math.min(canvasW, rx * canvasW)),
+    y: Math.max(0, Math.min(canvasH, ry * canvasH)),
+  };
+}
+
+touchpad.addEventListener("pointerdown", (e) => {
+  e.preventDefault();
+  touchpad.setPointerCapture(e.pointerId);
+  pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+
+  if (pointers.size === 1) {
+    tapStart = { x: e.clientX, y: e.clientY, t: Date.now(), moved: false };
+    // 立即把游標移到觸控點（絕對映射）
+    const p = padToCanvas(e.clientX, e.clientY);
+    posX = p.x; posY = p.y; sendPosition(posX, posY);
+  } else if (pointers.size === 2) {
+    // 進入雙指捲動：取消單指點擊判定
+    tapStart = null;
+    scrollLastAvgY = avgPointerY();
+    scrollAccum = 0;
+  }
+});
+
+touchpad.addEventListener("pointermove", (e) => {
+  if (!pointers.has(e.pointerId)) return;
+  e.preventDefault();
+  pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+
+  if (pointers.size >= 2) {
+    // 雙指：垂直位移 → 滾輪
+    const avgY = avgPointerY();
+    if (scrollLastAvgY !== null) {
+      scrollAccum += (avgY - scrollLastAvgY);
+      scrollLastAvgY = avgY;
+      while (Math.abs(scrollAccum) >= SCROLL_STEP) {
+        if (scrollAccum > 0) {        // 手指下滑 → 滾輪向下（負值）
+          sendScroll(-1);
+          scrollAccum -= SCROLL_STEP;
+        } else {                      // 手指上滑 → 滾輪向上（正值）
+          sendScroll(1);
+          scrollAccum += SCROLL_STEP;
+        }
+      }
+    }
+    return;
+  }
+
+  // 單指：移動游標
+  const p = padToCanvas(e.clientX, e.clientY);
+  posX = p.x; posY = p.y; sendPosition(posX, posY);
+  if (tapStart) {
+    if (Math.hypot(e.clientX - tapStart.x, e.clientY - tapStart.y) > TAP_MAX_MOVE)
+      tapStart.moved = true;
+  }
+});
+
+function endPointer(e) {
+  if (!pointers.has(e.pointerId)) return;
+  pointers.delete(e.pointerId);
+
+  if (pointers.size >= 1) {
+    // 還有手指在板上（多指收尾），重置捲動基準
+    scrollLastAvgY = pointers.size >= 2 ? avgPointerY() : null;
+    return;
+  }
+  scrollLastAvgY = null;
+
+  // 單指離開 → 判定是否為「點擊」
+  if (tapStart && !tapStart.moved && (Date.now() - tapStart.t) <= TAP_MAX_MS) {
+    const now = Date.now();
+    if (now - lastTapTime <= DBL_GAP_MS) {
+      // 雙擊
+      if (pendingClickTimer) { clearTimeout(pendingClickTimer); pendingClickTimer = null; }
+      lastTapTime = 0;
+      sendDblClick();
+    } else {
+      // 單擊（延遲送出，等待是否有第二擊變成雙擊）
+      lastTapTime = now;
+      pendingClickTimer = setTimeout(() => { sendClick(); pendingClickTimer = null; }, DBL_GAP_MS);
+    }
+  }
+  tapStart = null;
+}
+
+function avgPointerY() {
+  let sum = 0;
+  for (const p of pointers.values()) sum += p.y;
+  return pointers.size ? sum / pointers.size : 0;
+}
+
+touchpad.addEventListener("pointerup",     endPointer);
+touchpad.addEventListener("pointercancel", endPointer);
+touchpad.addEventListener("pointerleave",  endPointer);
+
+// ── 上傳照片（顯示在圓圈裡）──────────────────────────────────────────────────
+
+const photoBtn   = document.getElementById("photoBtn");
+const photoInput = document.getElementById("photoInput");
+const photoPreview = document.getElementById("photoPreview");
+
+photoBtn.addEventListener("click", () => photoInput.click());
+
+photoInput.addEventListener("change", () => {
+  const file = photoInput.files && photoInput.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    const img = new Image();
+    img.onload = () => {
+      // 前端先壓縮成 256x256 正方形（置中裁切），降低傳輸量
+      const SIZE = 256;
+      const canvas = document.createElement("canvas");
+      canvas.width = SIZE; canvas.height = SIZE;
+      const ctx = canvas.getContext("2d");
+      const side = Math.min(img.width, img.height);
+      const sx = (img.width  - side) / 2;
+      const sy = (img.height - side) / 2;
+      ctx.drawImage(img, sx, sy, side, side, 0, 0, SIZE, SIZE);
+      const dataUrl = canvas.toDataURL("image/jpeg", 0.82);
+      uploadPhoto(dataUrl);
+      photoPreview.style.backgroundImage = `url(${dataUrl})`;
+      photoPreview.classList.add("show");
+    };
+    img.src = reader.result;
+  };
+  reader.readAsDataURL(file);
+  photoInput.value = "";  // 允許再次選同一張
+});
+
+function uploadPhoto(dataUrl) {
+  if (!deviceId || !token) return;
+  photoBtn.textContent = "上傳中…";
+  fetch("/api/image", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ device_id: deviceId, token, data: dataUrl }),
+  }).then(r => {
+    photoBtn.textContent = r.ok ? "✓ 已更新圓圈圖案" : "上傳失敗，再試一次";
+    setTimeout(() => { photoBtn.textContent = "上傳照片（圓圈圖案）"; }, 1800);
+  }).catch(() => {
+    photoBtn.textContent = "上傳失敗，再試一次";
+    setTimeout(() => { photoBtn.textContent = "上傳照片（圓圈圖案）"; }, 1800);
+  });
 }
 
 // ── 顏色選擇器 ────────────────────────────────────────────

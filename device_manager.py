@@ -45,6 +45,9 @@ class Device:
     # 顯示名稱（例如 "手機 A"）
     display_name: str = ""
 
+    # 上傳照片版本（0 = 無照片；>0 為毫秒時間戳，變更時供前端快取失效）
+    image_version: int = 0
+
     def touch(self) -> None:
         """更新最後活動時間"""
         self.last_seen = time.time()
@@ -69,6 +72,10 @@ class Device:
 
     def to_dict(self) -> dict:
         """序列化為 JSON-serializable dict，供 WebSocket 廣播使用"""
+        image_url = (
+            f"/api/image/{self.device_id}?v={self.image_version}"
+            if self.image_version > 0 else ""
+        )
         return {
             "device_id":    self.device_id,
             "display_name": self.display_name,
@@ -79,6 +86,8 @@ class Device:
             "browser":      self.browser,
             "os_name":      self.os_name,
             "ip_address":   self.ip_address,
+            "index":        self.index,
+            "image_url":    image_url,
         }
 
 
@@ -201,6 +210,15 @@ class DeviceManager:
             return False
         return secrets.compare_digest(dev.session_token, token)
 
+    def verify_by_id(self, device_id: str, token: str) -> Optional[Device]:
+        """以 device_id + token 驗證（供 HTTP 上傳用）。成功回傳 Device。"""
+        dev = self._devices.get(device_id)
+        if dev is None or not token:
+            return None
+        if secrets.compare_digest(dev.session_token, token):
+            return dev
+        return None
+
     def validate_packet(self, data: dict, ws_id: str) -> bool:
         """
         驗證控制封包合法性：
@@ -229,6 +247,29 @@ class DeviceManager:
 
     def all_devices(self) -> list[Device]:
         return list(self._devices.values())
+
+    # ── 第一台手機（= 滑鼠控制者）─────────────────────────────────────────────
+
+    def first_device(self) -> Optional[Device]:
+        """
+        回傳「第一台」連線中的手機 = 連線序號 index 最小者。
+        第一台離線後，下一台自動遞補成為第一台。
+        """
+        connected = [d for d in self._devices.values() if d.connected]
+        if not connected:
+            return None
+        return min(connected, key=lambda d: d.index)
+
+    def first_device_id(self) -> Optional[str]:
+        dev = self.first_device()
+        return dev.device_id if dev else None
+
+    def is_first(self, device: Optional[Device]) -> bool:
+        """判斷某裝置是否為目前的第一台手機。"""
+        if device is None or not device.connected:
+            return False
+        first = self.first_device()
+        return first is not None and first.device_id == device.device_id
 
     def snapshot(self) -> list[dict]:
         """取得所有裝置的序列化快照，供廣播使用"""

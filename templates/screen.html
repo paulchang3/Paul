@@ -76,7 +76,21 @@ resize();
 window.addEventListener("resize", resize);
 
 // ── 裝置狀態 ──────────────────────────────────────────────
-let devices = {};  // device_id → {x, y, color, display_name, ...}
+let devices = {};  // device_id → {x, y, color, display_name, image_url, ...}
+
+// ── 照片快取（圓圈內顯示上傳的照片）──────────────────────────
+const imgCache = {};  // image_url → {img, ready}
+function getImage(url) {
+  if (!url) return null;
+  let entry = imgCache[url];
+  if (!entry) {
+    entry = { img: new Image(), ready: false };
+    entry.img.onload = () => { entry.ready = true; };
+    entry.img.src = url;
+    imgCache[url] = entry;
+  }
+  return entry.ready ? entry.img : null;
+}
 
 // ── 平滑插值 ──────────────────────────────────────────────
 const LERP = 0.25;  // 插值係數（愈大愈跟手）
@@ -149,6 +163,7 @@ function draw(ts) {
     r.color = target.color;
     r.display_name = target.display_name;
     r.connected    = target.connected;
+    r.image_url    = target.image_url;
 
     drawDot(r);
   });
@@ -191,17 +206,31 @@ function drawDot(dev) {
   ctx.fillStyle = glow;
   ctx.fill();
 
-  // 圓點本體
-  ctx.beginPath();
-  ctx.arc(x, y, r, 0, Math.PI * 2);
-  ctx.fillStyle = color;
-  ctx.shadowColor = color;
-  ctx.shadowBlur  = 12;
-  ctx.fill();
+  // 圓點本體：有上傳照片就裁圓顯示，否則純色
+  const img = getImage(dev.image_url);
+  if (img) {
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(x, y, r, 0, Math.PI * 2);
+    ctx.closePath();
+    ctx.clip();
+    ctx.drawImage(img, x - r, y - r, r * 2, r * 2);
+    ctx.restore();
+  } else {
+    ctx.beginPath();
+    ctx.arc(x, y, r, 0, Math.PI * 2);
+    ctx.fillStyle = color;
+    ctx.shadowColor = color;
+    ctx.shadowBlur  = 12;
+    ctx.fill();
+  }
 
   // 白色邊框
+  ctx.shadowBlur  = 0;
   ctx.strokeStyle = "rgba(255,255,255,0.4)";
   ctx.lineWidth   = 2 * scale;
+  ctx.beginPath();
+  ctx.arc(x, y, r, 0, Math.PI * 2);
   ctx.stroke();
 
   // 名稱標籤

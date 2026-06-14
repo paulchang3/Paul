@@ -1,0 +1,19 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+
+# 虛擬環境
+.venv/
+venv/
+
+# 執行時產生的檔案
+logs/
+qrcode.png
+crash.log
+
+# 打包輸出
+build/
+dist/
+*.spec

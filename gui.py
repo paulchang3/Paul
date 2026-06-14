@@ -25,10 +25,15 @@ from PySide6.QtWidgets import (
     QPushButton,
 )
 
-from config import SERVER_PORT, QRCODE_PATH, CANVAS_WIDTH, CANVAS_HEIGHT, DOT_RADIUS
+from config import (
+    SERVER_PORT, QRCODE_PATH, CANVAS_WIDTH, CANVAS_HEIGHT, DOT_RADIUS,
+    OVERLAY_DEFAULT, MOUSE_CONTROL_DEFAULT,
+)
 from health_monitor import health_monitor
 from device_manager import device_manager
 from qrcode_manager import generate_qrcode
+from mouse_controller import mouse_controller
+from image_store import image_store
 
 logger = logging.getLogger("gui")
 
@@ -68,6 +73,8 @@ class CanvasWidget(QWidget):
 
         # 插值用暫存（平滑移動）
         self._render: dict[str, dict] = {}  # device_id → {x, y, color, name}
+        # 照片快取：device_id → (version, 圓形 QPixmap)
+        self._pix_cache: dict[str, tuple[int, QPixmap]] = {}
 
         # 60 FPS 重繪計時器
         self._timer = QTimer(self)
@@ -109,6 +116,7 @@ class CanvasWidget(QWidget):
         for dev_id, dev in devices.items():
             if dev_id not in self._render:
                 self._render[dev_id] = {
+                    "id": dev_id,
                     "x": dev.x, "y": dev.y,
                     "color": dev.color, "name": dev.display_name,
                     "connected": dev.connected,
@@ -165,9 +173,14 @@ class CanvasWidget(QWidget):
         painter.setPen(Qt.PenStyle.NoPen)
         painter.drawEllipse(QPointF(cx, cy), radius * 2.5, radius * 2.5)
 
-        # 主圓點
-        painter.setBrush(QBrush(color))
-        painter.setPen(QPen(QColor(255, 255, 255, 80), 2))
+        # 主圓點：有上傳照片就裁圓顯示，否則純色
+        pix = self._circular_pixmap(r.get("id", ""), int(radius * 2))
+        if pix is not None:
+            painter.drawPixmap(int(cx - radius), int(cy - radius), pix)
+            painter.setBrush(Qt.BrushStyle.NoBrush)
+        else:
+            painter.setBrush(QBrush(color))
+        painter.setPen(QPen(QColor(255, 255, 255, 110), 2))
         painter.drawEllipse(QPointF(cx, cy), radius, radius)
 
         # 名稱文字
@@ -183,6 +196,44 @@ class CanvasWidget(QWidget):
         )
 
         painter.restore()
+
+    def _circular_pixmap(self, device_id: str, diameter: int):
+        """把裝置上傳的照片裁成圓形 QPixmap（含版本快取）。無照片回 None。"""
+        if not device_id or diameter < 2:
+            return None
+        version = image_store.version(device_id)
+        if version == 0:
+            self._pix_cache.pop(device_id, None)
+            return None
+        cached = self._pix_cache.get(device_id)
+        if cached and cached[0] == version and cached[1].width() == diameter:
+            return cached[1]
+
+        item = image_store.get(device_id)
+        if item is None:
+            return None
+        src = QPixmap()
+        if not src.loadFromData(item[1]):
+            return None
+
+        d = diameter
+        scaled = src.scaled(
+            d, d,
+            Qt.AspectRatioMode.KeepAspectRatioByExpanding,
+            Qt.TransformationMode.SmoothTransformation,
+        )
+        out = QPixmap(d, d)
+        out.fill(Qt.GlobalColor.transparent)
+        p = QPainter(out)
+        p.setRenderHint(QPainter.RenderHint.Antialiasing, True)
+        path = QPainterPath()
+        path.addEllipse(0, 0, d, d)
+        p.setClipPath(path)
+        p.drawPixmap((d - scaled.width()) // 2, (d - scaled.height()) // 2, scaled)
+        p.end()
+
+        self._pix_cache[device_id] = (version, out)
+        return out
 
 
 # ── LED 燈號 ──────────────────────────────────────────────────────────────────
@@ -205,10 +256,17 @@ class MainWindow(QMainWindow):
     def __init__(self, server_url: str) -> None:
         super().__init__()
         self.server_url = server_url
+        self.overlay = None  # 延遲建立（功能 1）
         self.setWindowTitle("Multi-Mobile QR Controller")
         self.setMinimumSize(1280, 720)
         self._build_ui()
         self._connect_signals()
+
+        # 套用啟動預設（安全：兩者預設皆關）
+        if OVERLAY_DEFAULT:
+            self.overlay_btn.setChecked(True)
+        if MOUSE_CONTROL_DEFAULT and mouse_controller.available:
+            self.mouse_btn.setChecked(True)
 
         # 每秒刷新左側面板
         self._refresh_timer = QTimer(self)
@@ -250,10 +308,45 @@ class MainWindow(QMainWindow):
 
         vbox.addWidget(self._build_qrcode_group())
         vbox.addWidget(self._build_info_group())
+        vbox.addWidget(self._build_controls_group())
         vbox.addWidget(self._build_stats_group())
         vbox.addWidget(self._build_device_list_group())
         vbox.addWidget(self._build_log_group(), 1)
         return panel
+
+    def _build_controls_group(self) -> QGroupBox:
+        box    = QGroupBox("控制")
+        layout = QVBoxLayout(box)
+
+        def _toggle_btn(text: str) -> QPushButton:
+            b = QPushButton(text)
+            b.setCheckable(True)
+            b.setStyleSheet(
+                f"QPushButton {{ background:{DARK_PANEL};color:{TEXT_DIM};"
+                f"border:1px solid {DARK_BORDER};border-radius:4px;padding:6px;text-align:left; }}"
+                f"QPushButton:checked {{ background:{ACCENT_GREEN};color:#000;"
+                f"border-color:{ACCENT_GREEN};font-weight:bold; }}"
+            )
+            return b
+
+        # 功能 1：跨螢幕最上層覆蓋層
+        self.overlay_btn = _toggle_btn("螢幕覆蓋層（最上層）：關")
+        self.overlay_btn.toggled.connect(self._toggle_overlay)
+        layout.addWidget(self.overlay_btn)
+
+        # 功能 2：第一台手機 = 真實滑鼠
+        self.mouse_btn = _toggle_btn("第一台手機 = 滑鼠：關")
+        self.mouse_btn.toggled.connect(self._toggle_mouse)
+        if not mouse_controller.available:
+            self.mouse_btn.setEnabled(False)
+            self.mouse_btn.setText("第一台手機 = 滑鼠（僅 Windows）")
+        layout.addWidget(self.mouse_btn)
+
+        hint = QLabel("圓圈會疊在整個桌面（含延伸螢幕）最上層；\n第一台手機可單擊/雙擊/雙指捲動操控滑鼠。")
+        hint.setStyleSheet(f"color:{TEXT_DIM};font-size:10px;")
+        hint.setWordWrap(True)
+        layout.addWidget(hint)
+        return box
 
     def _build_qrcode_group(self) -> QGroupBox:
         box    = QGroupBox("掃描 QR Code 加入")
@@ -444,6 +537,45 @@ class MainWindow(QMainWindow):
         layout.addWidget(lbl)
         layout.addWidget(url_lbl)
         dlg.exec()
+
+    # ── 功能開關 ──────────────────────────────────────────────────────────────
+
+    def _toggle_overlay(self, checked: bool) -> None:
+        """功能 1：開/關跨螢幕最上層覆蓋層。"""
+        self.overlay_btn.setText(f"螢幕覆蓋層（最上層）：{'開' if checked else '關'}")
+        try:
+            if checked:
+                if self.overlay is None:
+                    from screen_overlay import ScreenOverlay
+                    self.overlay = ScreenOverlay()
+                self.overlay.start()
+                self._append_log("覆蓋層已開啟：圓圈疊在整個桌面（含延伸螢幕）最上層")
+            elif self.overlay is not None:
+                self.overlay.stop()
+                self._append_log("覆蓋層已關閉")
+        except Exception as exc:
+            logger.error("覆蓋層切換失敗：%s", exc)
+            self._append_log(f"覆蓋層啟動失敗：{exc}")
+            self.overlay_btn.setChecked(False)
+
+    def _toggle_mouse(self, checked: bool) -> None:
+        """功能 2：開/關「第一台手機 = 真實滑鼠」。"""
+        mouse_controller.active = bool(checked) and mouse_controller.available
+        self.mouse_btn.setText(f"第一台手機 = 滑鼠：{'開' if mouse_controller.active else '關'}")
+        if mouse_controller.active:
+            self._append_log("已開啟：第一台手機現在可操控滑鼠（單擊/雙擊/雙指捲動）")
+        else:
+            self._append_log("已關閉：手機不再操控滑鼠")
+
+    def closeEvent(self, event) -> None:  # noqa: N802
+        """關閉主視窗時一併收掉覆蓋層並停用滑鼠控制。"""
+        try:
+            if self.overlay is not None:
+                self.overlay.stop()
+            mouse_controller.active = False
+        except Exception:
+            pass
+        super().closeEvent(event)
 
     def _refresh_qrcode(self) -> None:
         if QRCODE_PATH.exists():

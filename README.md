@@ -1,32 +1,44 @@
-# Multi-Mobile QR Controller project_260614
+# Multi-Mobile QR Controller
 
-獨立的上傳／開發空間。這個分支**不掛在 `brave-thompson-cjo4c7` 底下**，
-也不含 Ollama / FMEA 等其他內容 —— 切到這個分支只會看到你這個專案。
+掃 QR Code，讓多支手機變成桌面的無線控制器。每台手機在桌面上是一個彩色**圓圈**，
+可即時移動；第一台手機還能當**真實滑鼠**，而且圓圈裡可以放你**上傳的照片**。
 
-## 上傳你的程式碼（用瀏覽器，不用 git）
+> 本分支 `multi-mobile-qr-controller-260614` 在原專案上新增三大功能（見下）。
+> 程式理解與規格：[`SRS.md`](SRS.md)。Windows 實機測試步驟：[`WINDOWS_測試指南.md`](WINDOWS_測試指南.md)。
 
-1. 點這個連結，直接進到上傳畫面（目標就是**本分支根目錄**）：
-   <https://github.com/paulchang3/Paul/upload/multi-mobile-qr-controller-260614>
-2. 把 `E:\113_製作\700_Python\011_開發中_2603\Multi-Mobile QR Controller project`
-   裡的檔案**拖進來**（`.py` / `.html` / `.js` / `.css` / `requirements.txt` 等程式碼檔；
-   先**不要**傳 `venv/`、大圖、影片這類大檔）。
-3. ⚠️ 拉到頁面**最底下**，按綠色的 **Commit changes** 按鈕。
-   上次檔案沒進來，最可能就是漏了這一步 —— 拖檔只是「準備」，按下去才算真的送出。
-4. 回來跟我說一聲「**傳好了**」。
+## 快速開始（Windows）
 
-我收到後會：讀懂程式 → 寫出主要 **SRS** → 加 headless 自我檢測 → 實作下面三個功能，
-全部就做在這個獨立分支上。
+雙擊 `deploy.bat`，或：
 
-## 三個要實作的功能
+```bat
+python -m venv .venv && .venv\Scripts\activate
+pip install -r requirements.txt
+python main.py
+```
 
-1. 每台手機在整個桌面（含延伸螢幕）最上層自由移動的圓圈。
-2. 第一台手機 = 滑鼠：單擊選取、雙擊啟動、雙指上下滑動 = 滾輪。
-3. 手機 UI 可上傳照片，當作圓圈顯示的圖。
+手機連同一個 Wi-Fi → 掃描 GUI 上的 QR Code → 開始控制。
 
----
+## 260614 新增三大功能
 
-> 為什麼放在 `paulchang3/Paul` 倉庫裡，而不是全新的獨立倉庫？
-> 因為這個雲端 session 的讀取權限被鎖定在 `paulchang3/Paul`，
-> 全新的獨立倉庫我反而讀不到、沒辦法接手。
-> 這個分支是 **orphan branch**：自成一格、與 `Paul` 其他分支互不相干，
-> 是「我讀得到」且「跟 brave-thompson 完全分離」兩者兼顧的做法。
+1. **跨螢幕最上層圓圈** — 每台手機的圓圈疊在整個桌面（含延伸螢幕）最上層、
+   滑鼠穿透、無邊界移動。GUI「螢幕覆蓋層」開關控制。
+2. **第一台手機 = 滑鼠** — 第一台手機可操控真實游標：滑動移動、**單擊**選擇、
+   **雙擊**啟動、**雙指上下**捲動。GUI「第一台手機=滑鼠」開關控制（安全預設為關）。
+3. **上傳照片當圓圈圖案** — 手機可上傳照片，裁成圓形顯示在自己的圓圈裡
+   （小地圖、覆蓋層、`/screen` 三處同步）。
+
+## 開發 / 測試
+
+```sh
+python -m pytest          # 後端與新功能 headless 測試（雲端可跑）
+```
+
+GUI、覆蓋層、真實滑鼠需在 Windows 實機驗證（headless 環境無法）。
+
+## 架構一覽
+
+`main.py` 啟動 → `installer.py` 裝環境 → `qrcode_manager.py` 出 QR →
+`server.py`（FastAPI）跑 HTTP/WebSocket，協調 `device_manager` / `websocket_manager` /
+`image_store` / `mouse_controller` → `gui.py`（PySide6）顯示 + `screen_overlay.py` 覆蓋層。
+手機端為 `templates/controller.html`，瀏覽器測試畫布為 `templates/screen.html`。
+完整說明見 [`SRS.md`](SRS.md)。

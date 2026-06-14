@@ -31,6 +31,16 @@ HEALTH_CHECK_INTERVAL: int = 5       # 秒
 CPU_ALERT_THRESHOLD: float = 90.0    # %
 RAM_ALERT_THRESHOLD: float = 90.0    # %
 
+# ── 螢幕覆蓋層（跨螢幕、最上層）─────────────────────────────────────────────
+OVERLAY_DOT_RADIUS: int = 46         # 覆蓋層圓圈半徑（像素）
+OVERLAY_FPS: int = 60                # 覆蓋層重繪頻率
+OVERLAY_SHOW_NAMES: bool = True      # 圓圈是否顯示手機名稱
+OVERLAY_DEFAULT: bool = False        # 啟動時是否自動開啟覆蓋層
+
+# ── 第一台手機 = 滑鼠 ─────────────────────────────────────────────────────────
+# 安全預設：啟動時「不」自動接管游標，必須在 GUI 上明確勾選才生效。
+MOUSE_CONTROL_DEFAULT: bool = False
+
 # ── 目錄路徑 ─────────────────────────────────────────────────────────────────
 LOGS_DIR: Path = BASE_DIR / "logs"
 STATIC_DIR: Path = BASE_DIR / "static"

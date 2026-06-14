@@ -14,7 +14,8 @@ from pathlib import Path
 from typing import Any
 
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Request, HTTPException
-from fastapi.responses import FileResponse, HTMLResponse, JSONResponse
+from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, Response
+
 from fastapi.staticfiles import StaticFiles
 
 from config import (
@@ -23,6 +24,8 @@ from config import (
 )
 from device_manager import device_manager
 from websocket_manager import connection_pool
+from mouse_controller import mouse_controller
+from image_store import image_store
 
 logger = logging.getLogger("server")
 
@@ -92,6 +95,49 @@ async def api_devices() -> JSONResponse:
     return JSONResponse({"devices": device_manager.snapshot()})
 
 
+@app.post("/api/image")
+async def api_upload_image(request: Request) -> JSONResponse:
+    """
+    手機上傳照片，顯示在自己的圓圈裡。
+    Body(JSON)：{ "device_id", "token", "data": "data:image/...;base64,..." }
+    """
+    try:
+        body = await request.json()
+    except Exception:
+        raise HTTPException(status_code=400, detail="JSON 解析失敗")
+
+    device_id = str(body.get("device_id", ""))
+    token     = str(body.get("token", ""))
+    data_url  = str(body.get("data", ""))
+
+    device = device_manager.verify_by_id(device_id, token)
+    if device is None:
+        raise HTTPException(status_code=403, detail="device_id 或 token 不正確")
+
+    if not image_store.set_data_url(device_id, data_url):
+        raise HTTPException(status_code=400, detail="照片格式不支援或過大")
+
+    # 更新版本並通知所有螢幕重繪
+    device.image_version = image_store.version(device_id)
+    await connection_pool.broadcast_to_screens({
+        "type":    "update",
+        "devices": device_manager.snapshot(),
+        "ts":      time.time(),
+    })
+    return JSONResponse({"ok": True, "image_url": f"/api/image/{device_id}?v={device.image_version}"})
+
+
+@app.get("/api/image/{device_id}")
+async def api_get_image(device_id: str) -> Response:
+    """取得某裝置上傳的照片。"""
+    item = image_store.get(device_id)
+    if item is None:
+        raise HTTPException(status_code=404, detail="此裝置尚未上傳照片")
+    content_type, raw = item
+    return Response(content=raw, media_type=content_type,
+                    headers={"Cache-Control": "max-age=3600"})
+
+
 # ── WebSocket 端點 ─────────────────────────────────────────────────────────────
 
 @app.websocket("/ws/mobile")
@@ -124,6 +170,7 @@ async def ws_mobile(websocket: WebSocket) -> None:
         "canvas_h":     CANVAS_HEIGHT,
         "x":            device.x,
         "y":            device.y,
+        "is_first":     device_manager.is_first(device),
     })
 
     # 通知所有螢幕有新裝置加入
@@ -131,6 +178,8 @@ async def ws_mobile(websocket: WebSocket) -> None:
         "type":    "device_joined",
         "devices": device_manager.snapshot(),
     })
+    # 通知所有手機「誰是第一台（滑鼠）」
+    await _broadcast_role()
 
     logger.info("Mobile init: %s (%s)", device.display_name, ip)
 
@@ -144,11 +193,15 @@ async def ws_mobile(websocket: WebSocket) -> None:
     finally:
         dev = await device_manager.disconnect(ws_id)
         await connection_pool.disconnect(ws_id)
+        if dev:
+            image_store.remove(dev.device_id)
         # 通知螢幕端更新
         await connection_pool.broadcast_to_screens({
             "type":    "device_left",
             "devices": device_manager.snapshot(),
         })
+        # 第一台可能已換人，重新廣播角色
+        await _broadcast_role()
         if dev:
             logger.info("Mobile disconnected: %s", dev.display_name)
 
@@ -177,6 +230,20 @@ async def ws_screen(websocket: WebSocket) -> None:
 
 
 # ── 訊息處理 ──────────────────────────────────────────────────────────────────
+
+async def _broadcast_role() -> None:
+    """告訴所有手機目前「第一台（= 滑鼠控制者）」是誰。"""
+    await connection_pool.broadcast_to_mobiles({
+        "type":            "role",
+        "first_device_id": device_manager.first_device_id(),
+    })
+
+
+def _drive_cursor(device) -> None:
+    """若該裝置是第一台且滑鼠控制已開啟，把真實游標移到它的位置。"""
+    if mouse_controller.active and device_manager.is_first(device):
+        mouse_controller.move_to_logical(device.x, device.y, CANVAS_WIDTH, CANVAS_HEIGHT)
+
 
 async def _handle_mobile_message(ws_id: str, raw: str) -> None:
     """
@@ -223,14 +290,31 @@ async def _handle_mobile_message(ws_id: str, raw: str) -> None:
         speed = float(data.get("speed", 1.0))
         speed = max(0.1, min(5.0, speed))  # 限制速度範圍
         device.move(dx, dy, speed)
+        _drive_cursor(device)
 
     elif msg_type == "set_position":
         x = float(data.get("x", device.x))
         y = float(data.get("y", device.y))
         device.set_position(x, y)
+        _drive_cursor(device)
 
     elif msg_type == "reset":
         device.set_position(CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2)
+        _drive_cursor(device)
+
+    # ── 滑鼠動作（只有第一台手機 + 已開啟滑鼠控制才生效）──────────────────────
+    elif msg_type in ("click", "dblclick", "scroll"):
+        if mouse_controller.active and device_manager.is_first(device):
+            if msg_type == "click":
+                mouse_controller.left_click()
+            elif msg_type == "dblclick":
+                mouse_controller.double_click()
+            else:  # scroll
+                amount = int(max(-30, min(30, int(float(data.get("amount", 0))))))
+                if amount:
+                    mouse_controller.scroll(amount)
+        # 滑鼠動作不需要廣播給螢幕
+        return
 
     # 頻率限制廣播（最多 60 FPS）
     now = time.time()
