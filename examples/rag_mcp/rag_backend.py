@@ -128,10 +128,13 @@ class RAGBackend:
                 self.model = None
         self.has_embeddings = self.model is not None
 
-        # 2) 建立儲存後端（ChromaDB 優先，否則記憶體 dict）
+        # 2) 建立儲存後端。
+        #    僅在「有本地向量模型」時才啟用 ChromaDB——這樣我們永遠以明確的
+        #    embeddings 寫入 / 查詢，不必依賴 ChromaDB 內建（需連網下載）的向量
+        #    函式。缺模型時退回記憶體 dict + 關鍵字搜尋，確保離線也不會崩潰。
         self._collection = None
         self._store: dict[str, dict[str, Any]] = {}
-        if _HAS_CHROMA:
+        if _HAS_CHROMA and self.has_embeddings:
             try:
                 Path(db_path).mkdir(parents=True, exist_ok=True)
                 client = chromadb.PersistentClient(path=db_path)
@@ -145,6 +148,12 @@ class RAGBackend:
                     file=sys.stderr,
                 )
                 self._collection = None
+        elif _HAS_CHROMA and not self.has_embeddings:
+            print(
+                "[rag_backend] 已安裝 chromadb 但無可用向量模型，"
+                "改用記憶體 + 關鍵字搜尋",
+                file=sys.stderr,
+            )
         self.backend_name = "chromadb" if self._collection is not None else "memory"
 
     # --- 內部工具 ----------------------------------------------------------
@@ -185,18 +194,13 @@ class RAGBackend:
         embedding = self._encode(content)
 
         if self._collection is not None:
-            if embedding is not None:
-                self._collection.add(
-                    ids=[doc_id],
-                    documents=[content],
-                    embeddings=[embedding],
-                    metadatas=[meta],
-                )
-            else:
-                # 無 sentence-transformers：交由 ChromaDB 內建向量函式編碼
-                self._collection.add(
-                    ids=[doc_id], documents=[content], metadatas=[meta]
-                )
+            # 啟用 ChromaDB 時必有本地向量模型，故一律以明確 embeddings 寫入
+            self._collection.add(
+                ids=[doc_id],
+                documents=[content],
+                embeddings=[embedding],
+                metadatas=[meta],
+            )
         else:
             self._store[doc_id] = {
                 "content": content,
@@ -223,11 +227,8 @@ class RAGBackend:
         if count == 0:
             return []
         n = max(1, min(n_results, count))
-        embedding = self._encode(query)
-        if embedding is not None:
-            res = self._collection.query(query_embeddings=[embedding], n_results=n)
-        else:
-            res = self._collection.query(query_texts=[query], n_results=n)
+        # 啟用 ChromaDB 時必有本地向量模型，直接以查詢向量檢索
+        res = self._collection.query(query_embeddings=[self._encode(query)], n_results=n)
 
         ids = (res.get("ids") or [[]])[0]
         docs = (res.get("documents") or [[]])[0]
