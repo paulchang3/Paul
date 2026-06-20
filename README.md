@@ -8,6 +8,11 @@ sandboxes.
 > [`fmea_expert/`](fmea_expert/README.md):ISO 14971 FMEA 風險管理計算專家
 > (自訂 Ollama 模型 + Word 文件 RAG 知識庫,可在任何 .py 程式中呼叫)。
 
+> **想把知識庫接到 Claude Code / Cursor?** RAG + MCP 範例在
+> [`examples/rag_mcp/`](examples/rag_mcp/README.md):ChromaDB + sentence-transformers
+> 向量檢索,封裝成標準 MCP server(6 工具/2 資源/1 提示),缺套件會自動退回
+> 記憶體 + 關鍵字,離線也能跑。
+
 **導覽**:[檔案索引 INDEX.md](INDEX.md) ・
 [GitHub 整理指南](docs/github-organization-guide.md)(命名/編碼/分類/連結規則)・
 [Ollama 環境說明(HTML)](docs/ollama-guide.html) ・

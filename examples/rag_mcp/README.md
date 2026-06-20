@@ -19,7 +19,7 @@
 | `install_deps.bat` | Windows 一鍵安裝 + 自我檢查 |
 | `check_setup.py` | 環境自我檢查 / 自動安裝 / 產生本機設定 |
 | `run.bat` | Windows 啟動選單（Demo / 檢查 / 安裝 / 設定） |
-| `建立桌面捷徑.bat` | 在桌面建立「RAG 知識庫」捷徑（雙擊即可） |
+| `create_desktop_shortcut.bat` | 在桌面建立「RAG 知識庫」捷徑（雙擊即可） |
 
 ## 環境需求
 
@@ -74,7 +74,7 @@ python examples/rag_mcp/demo.py
 
 ## 桌面捷徑（Windows，一鍵啟動選單）
 
-1. 在檔案總管進入 `examples\rag_mcp\`，**雙擊 `建立桌面捷徑.bat`**。
+1. 在檔案總管進入 `examples\rag_mcp\`，**雙擊 `create_desktop_shortcut.bat`**。
 2. 桌面上會出現 **「RAG 知識庫」** 捷徑（圖示用 venv 的 `python.exe`）。
 3. 之後雙擊該捷徑即開啟啟動選單 `run.bat`：
 
