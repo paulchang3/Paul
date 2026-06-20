@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import json
 import os
+import subprocess
 import sys
 import urllib.request
 
@@ -399,11 +400,64 @@ def _serve_fastmcp() -> None:
     mcp.run()
 
 
+def _auto_install_and_restart() -> None:
+    """缺 mcp/fastmcp 時自動 pip 安裝並重啟行程一次（自我修復）。
+
+    「MCP 顯示離線」最常見的原因，就是用戶端啟動本 server 時找不到 MCP
+    SDK，腳本隨即結束。這裡偵測到缺套件就自動安裝再重啟，省去手動步驟。
+
+    * 可用環境變數 ``RAG_MCP_AUTO_INSTALL=0`` 關閉此行為。
+    * 所有 pip 輸出一律送往 stderr，避免污染 stdout 的 JSON-RPC 通道。
+    * 以 ``_RAG_MCP_BOOTSTRAPPED`` 旗標確保最多只自動安裝 / 重啟一次。
+    """
+    flag = os.environ.get("RAG_MCP_AUTO_INSTALL", "1").lower()
+    if flag not in ("1", "true", "yes", "on"):
+        return
+    if os.environ.get("_RAG_MCP_BOOTSTRAPPED") == "1":
+        return  # 已嘗試過，避免無限重啟
+
+    print(
+        "[rag_mcp_server] 未偵測到 mcp/fastmcp，嘗試自動安裝…"
+        "（可設 RAG_MCP_AUTO_INSTALL=0 關閉）",
+        file=sys.stderr,
+    )
+    installed_any = False
+    for package in ("mcp", "fastmcp"):
+        try:
+            subprocess.check_call(
+                [
+                    sys.executable, "-m", "pip", "install",
+                    "--disable-pip-version-check", package,
+                ],
+                stdout=sys.stderr,  # 切勿寫入 stdout（JSON-RPC 通道）
+                stderr=sys.stderr,
+            )
+            installed_any = True
+        except Exception as exc:
+            print(f"[rag_mcp_server] 安裝 {package} 失敗：{exc}", file=sys.stderr)
+
+    if not installed_any:
+        print(
+            "[rag_mcp_server] 自動安裝失敗，請手動執行："
+            f"{sys.executable} -m pip install mcp fastmcp",
+            file=sys.stderr,
+        )
+        return
+
+    os.environ["_RAG_MCP_BOOTSTRAPPED"] = "1"
+    print("[rag_mcp_server] 安裝完成，重新啟動伺服器…", file=sys.stderr)
+    try:
+        os.execv(sys.executable, [sys.executable, *sys.argv])
+    except Exception as exc:  # execv 失敗（罕見）：請使用者重啟用戶端
+        print(f"[rag_mcp_server] 自動重啟失敗，請重新啟動用戶端：{exc}", file=sys.stderr)
+
+
 def main() -> int:
     if _BACKEND is None:
+        _auto_install_and_restart()  # 成功時會 execv 取代行程，不會返回
         print(
-            "錯誤：未安裝 mcp 或 fastmcp。請先執行 install_deps.bat，"
-            "或 `pip install mcp fastmcp`。",
+            "錯誤：未安裝 mcp 或 fastmcp。請執行 install_deps.bat、"
+            "`python check_setup.py --install`，或 `pip install mcp fastmcp`。",
             file=sys.stderr,
         )
         return 1

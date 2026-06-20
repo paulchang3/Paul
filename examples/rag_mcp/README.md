@@ -16,7 +16,8 @@
 | `rag_mcp_server.py` | 標準 MCP server（stdio）；`mcp` 不在則用 `fastmcp` |
 | `demo.py` | 獨立演示腳本，不依賴 MCP |
 | `mcp_config.json` | 供 Claude Code / Cursor 加入此 server 的配置 |
-| `install_deps.bat` | Windows 一鍵安裝相依套件 |
+| `install_deps.bat` | Windows 一鍵安裝 + 自我檢查 |
+| `check_setup.py` | 環境自我檢查 / 自動安裝 / 產生本機設定 |
 
 ## 環境需求
 
@@ -33,13 +34,22 @@
 examples\rag_mcp\install_deps.bat
 ```
 
-**其他平台 / 手動：**
+**任何平台（推薦，會順便做環境自我檢查）：**
+
+```sh
+python examples/rag_mcp/check_setup.py --install
+```
+
+**手動：**
 
 ```sh
 pip install mcp fastmcp ollama chromadb sentence-transformers
 ```
 
 > `all-MiniLM-L6-v2`（384 維）會在首次執行時自動下載（約 80 MB）。
+>
+> 此外，`rag_mcp_server.py` 在啟動時若偵測不到 `mcp`/`fastmcp`，會**自動 pip
+> 安裝並重啟一次**，因此即使忘了先安裝，MCP server 通常也能自我修復。
 
 ## 執行 Demo
 
@@ -110,6 +120,22 @@ python examples/rag_mcp/demo.py
 - 「把這段內容加入知識庫，來源標 `ISO13485_7.3`」→ `add_document`
 - 「知識庫裡關於風險評估的內容有哪些？」→ `search_knowledge`
 - 「用 gemma4 根據知識庫回答：軟體安全分類怎麼分？」→ `query_with_llm`
+
+## 疑難排解：MCP server 顯示「離線 / offline」
+
+最快的方式是執行 `python examples/rag_mcp/check_setup.py`，它會逐項檢查並印出
+修正建議與「套用本機路徑」的設定。常見原因：
+
+1. **缺 `mcp` / `fastmcp` 套件（最常見）。** 本 server 啟動時會自動 pip 安裝並
+   重啟一次；若仍失敗，請手動執行 `python check_setup.py --install` 或
+   `pip install mcp fastmcp`。要關閉自動安裝可設環境變數
+   `RAG_MCP_AUTO_INSTALL=0`。
+2. **設定檔路徑錯誤。** `command` 必須指向你實際的直譯器：Windows 為
+   `.venv\Scripts\python.exe`、macOS/Linux 為 `.venv/bin/python`。執行
+   `python check_setup.py --config` 會直接印出套用本機路徑的設定，複製貼上即可。
+3. **改完設定沒重啟用戶端。** Claude Desktop / Cursor 需完全重啟才會重新連線。
+4. **第一次啟動較久。** 自動安裝或下載嵌入模型時，握手可能需數十秒；裝好後
+   再重啟用戶端即可秒連。
 
 ## 與 Ollama 的關係
 
