@@ -8,15 +8,15 @@
 直接「雙擊」本檔(或配套的 .bat)會進入互動選單;
 進階使用者可在終端機下指令:
 
-    python 軟體開發專案管理.py selftest                  SRS 全功能自我檢測
-    python 軟體開發專案管理.py init 韌體升級工具          建立新專案(自動編號)
-    python 軟體開發專案管理.py list                      所有專案總覽
-    python 軟體開發專案管理.py goal P001 "2027Q1 交付"   設定/查看目標
-    python 軟體開發專案管理.py wbs  P001 add "需求訪談"   新增 WBS(--parent 1 變子項)
-    python 軟體開發專案管理.py wbs  P001 done 1.1        標記完成
-    python 軟體開發專案管理.py ver  P001 bump minor -m "新增登入"   升版
-    python 軟體開發專案管理.py check                     稽核命名/編號/資料完整性
-    python 軟體開發專案管理.py report                    產生 專案總覽.md
+    python software_project_manager.py selftest                  SRS 全功能自我檢測
+    python software_project_manager.py init 韌體升級工具          建立新專案(自動編號)
+    python software_project_manager.py list                      所有專案總覽
+    python software_project_manager.py goal P001 "2027Q1 交付"   設定/查看目標
+    python software_project_manager.py wbs  P001 add "需求訪談"   新增 WBS(--parent 1 變子項)
+    python software_project_manager.py wbs  P001 done 1.1        標記完成
+    python software_project_manager.py ver  P001 bump minor -m "新增登入"   升版
+    python software_project_manager.py check                     稽核命名/編號/資料完整性
+    python software_project_manager.py report                    產生 專案總覽.md
 """
 
 from __future__ import annotations  # 讓舊版 Python 也能載入,進到版本守門訊息
@@ -468,7 +468,7 @@ def main() -> None:
         return
 
     ap = argparse.ArgumentParser(
-        prog="軟體開發專案管理.py",
+        prog="software_project_manager.py",
         description="管制子資料夾專案的目標 / WBS / 版次 / 命名 / 編號")
     sub = ap.add_subparsers(dest="cmd")
     sub.add_parser("list", help="所有專案總覽")

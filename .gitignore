@@ -1,0 +1,6 @@
+# Python 編譯快取
+__pycache__/
+*.pyc
+
+# RAG 範例產生的向量資料庫（執行 demo / MCP server 時自動建立，不進版控）
+database/

@@ -6,12 +6,13 @@
 
 | 檔案 | 最後更新 |
 | --- | --- |
-| [.gitattributes](.gitattributes) | 2026-06-12 |
+| [.gitattributes](.gitattributes) | 2026-06-13 |
+| [.gitignore](.gitignore) | 2026-06-20 |
 | [INDEX.md](INDEX.md) | 2026-06-13 |
 | [README.md](README.md) | 2026-06-12 |
 | [ollama_client.py](ollama_client.py) | 2026-06-11 |
-| [軟體開發專案管理.bat](軟體開發專案管理.bat) | (尚未提交) |
-| [軟體開發專案管理.py](軟體開發專案管理.py) | 2026-06-13 |
+| [software_project_manager.bat](software_project_manager.bat) | (尚未提交) |
+| [software_project_manager.py](software_project_manager.py) | (尚未提交) |
 
 ## .claude/skills/tidy-github
 
@@ -33,6 +34,20 @@
 | [github-organization-guide.md](docs/github-organization-guide.md) | 2026-06-12 |
 | [ollama-guide.html](docs/ollama-guide.html) | 2026-06-11 |
 
+## examples/rag_mcp
+
+| 檔案 | 最後更新 |
+| --- | --- |
+| [README.md](examples/rag_mcp/README.md) | 2026-06-20 |
+| [check_setup.py](examples/rag_mcp/check_setup.py) | 2026-06-20 |
+| [create_desktop_shortcut.bat](examples/rag_mcp/create_desktop_shortcut.bat) | (尚未提交) |
+| [demo.py](examples/rag_mcp/demo.py) | 2026-06-20 |
+| [install_deps.bat](examples/rag_mcp/install_deps.bat) | 2026-06-20 |
+| [mcp_config.json](examples/rag_mcp/mcp_config.json) | 2026-06-20 |
+| [rag_backend.py](examples/rag_mcp/rag_backend.py) | 2026-06-20 |
+| [rag_mcp_server.py](examples/rag_mcp/rag_mcp_server.py) | 2026-06-20 |
+| [run.bat](examples/rag_mcp/run.bat) | 2026-06-20 |
+
 ## fmea_expert
 
 | 檔案 | 最後更新 |
@@ -47,15 +62,8 @@
 | [example_usage.py](fmea_expert/example_usage.py) | 2026-06-12 |
 | [extract_docx.py](fmea_expert/extract_docx.py) | 2026-06-12 |
 | [extract_pdf.py](fmea_expert/extract_pdf.py) | 2026-06-12 |
-| [knowledge.json](fmea_expert/knowledge.json) | (尚未提交) |
 | [make_sample_docx.py](fmea_expert/make_sample_docx.py) | 2026-06-12 |
 | [ollama_api.py](fmea_expert/ollama_api.py) | 2026-06-12 |
-
-## fmea_expert/my_docs
-
-| 檔案 | 最後更新 |
-| --- | --- |
-| [FMEA知識範例.docx](fmea_expert/my_docs/FMEA知識範例.docx) | (尚未提交) |
 
 ## scripts
 
