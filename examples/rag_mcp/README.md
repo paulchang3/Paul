@@ -18,6 +18,8 @@
 | `mcp_config.json` | 供 Claude Code / Cursor 加入此 server 的配置 |
 | `install_deps.bat` | Windows 一鍵安裝 + 自我檢查 |
 | `check_setup.py` | 環境自我檢查 / 自動安裝 / 產生本機設定 |
+| `run.bat` | Windows 啟動選單（Demo / 檢查 / 安裝 / 設定） |
+| `建立桌面捷徑.bat` | 在桌面建立「RAG 知識庫」捷徑（雙擊即可） |
 
 ## 環境需求
 
@@ -69,6 +71,22 @@ python examples/rag_mcp/demo.py
 
 > 分數含義依後端而定：安裝向量套件時為餘弦相似度，關鍵字後備模式則為
 > bigram 重疊係數。
+
+## 桌面捷徑（Windows，一鍵啟動選單）
+
+1. 在檔案總管進入 `examples\rag_mcp\`，**雙擊 `建立桌面捷徑.bat`**。
+2. 桌面上會出現 **「RAG 知識庫」** 捷徑（圖示用 venv 的 `python.exe`）。
+3. 之後雙擊該捷徑即開啟啟動選單 `run.bat`：
+
+   ```
+   [1] 執行 Demo      [2] 環境自我檢查
+   [3] 安裝 / 更新套件  [4] 產生本機 MCP 設定
+   ```
+
+捷徑與選單都以 `%~dp0` 自動推導路徑（venv 在專案根目錄的 `.venv`），不寫死
+磁碟代號，專案搬移後仍可用；找不到 venv 時自動改用系統 `python`。
+
+> 也可不建捷徑，直接雙擊 `run.bat` 使用同一個選單。
 
 ## 在 Claude Code / Cursor 使用此 MCP server
 
