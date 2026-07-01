@@ -6,11 +6,12 @@
 
 | 檔案 | 最後更新 |
 | --- | --- |
-| [.gitattributes](.gitattributes) | 2026-06-12 |
+| [.gitattributes](.gitattributes) | 2026-06-13 |
 | [INDEX.md](INDEX.md) | 2026-06-13 |
 | [README.md](README.md) | 2026-06-12 |
 | [ollama_client.py](ollama_client.py) | 2026-06-11 |
-| [軟體開發專案管理.bat](軟體開發專案管理.bat) | (尚未提交) |
+| [report.md](report.md) | (尚未提交) |
+| [軟體開發專案管理.bat](軟體開發專案管理.bat) | 2026-06-13 |
 | [軟體開發專案管理.py](軟體開發專案管理.py) | 2026-06-13 |
 
 ## .claude/skills/tidy-github
@@ -47,15 +48,8 @@
 | [example_usage.py](fmea_expert/example_usage.py) | 2026-06-12 |
 | [extract_docx.py](fmea_expert/extract_docx.py) | 2026-06-12 |
 | [extract_pdf.py](fmea_expert/extract_pdf.py) | 2026-06-12 |
-| [knowledge.json](fmea_expert/knowledge.json) | (尚未提交) |
 | [make_sample_docx.py](fmea_expert/make_sample_docx.py) | 2026-06-12 |
 | [ollama_api.py](fmea_expert/ollama_api.py) | 2026-06-12 |
-
-## fmea_expert/my_docs
-
-| 檔案 | 最後更新 |
-| --- | --- |
-| [FMEA知識範例.docx](fmea_expert/my_docs/FMEA知識範例.docx) | (尚未提交) |
 
 ## scripts
 
