@@ -34,21 +34,30 @@ HTML)丟進去,程式自動拆解成一份多分頁的 `.xlsx`,裡面同時包�
 標題/條列結構是否清楚。`--llm` 是加分項:失敗時(沒裝 Ollama、沒開機、
 沒有模型)會印警告並保留規則式結果繼續跑,不會讓整個流程失敗。
 
-## 快速開始
+## 快速開始(Windows,雙擊執行,零安裝門檻)
+
+把 `.docx`/`.pdf`/`.html`/`.xlsx` 檔案**拖曳到 `km_pipeline/KM知識拆解.bat`**
+上放開即可:
+
+- 第一次執行會自動 `pip install` 必要套件(openpyxl、pypdf),並自動跑一次
+  自我測試確認環境沒問題(裝失敗會印出訊息告訴你要手動裝什麼)。
+- 通過後自動拆解你拖曳的檔案,產生同一個資料夾的「檔名_KM知識.xlsx」。
+- 沒拖曳檔案、直接雙擊,只會顯示用法說明,不會出錯關掉視窗。
+
+只想檢查環境(不處理任何檔案):雙擊執行前,先在資料夾內雙擊
+`check_setup.py` 也可以(或見下方命令列方式)。
+
+## 快速開始(命令列 / macOS / Linux)
 
 ```sh
 pip install -r km_pipeline/requirements.txt   # openpyxl(必備)、pypdf(要處理 PDF 才需要)
+
+python km_pipeline/check_setup.py             # 環境檢查:缺套件自動裝,並跑一次自我測試
 
 python km_pipeline/main.py 我的文件.docx -o 輸出.xlsx
 python km_pipeline/main.py 文件1.pdf 文件2.html 文件夾/ -o 輸出.xlsx   # 可混合多個檔案/資料夾
 
 python km_pipeline/main.py 我的文件.docx -o 輸出.xlsx --llm            # 加開本機 Ollama 強化
-```
-
-先確認環境沒問題:
-
-```sh
-python km_pipeline/selftest.py   # 用合成的 HTML 跑一遍全流程,幾秒內完成
 ```
 
 ## 輸出的六個分頁
