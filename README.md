@@ -8,6 +8,11 @@ sandboxes.
 > [`fmea_expert/`](fmea_expert/README.md):ISO 14971 FMEA 風險管理計算專家
 > (自訂 Ollama 模型 + Word 文件 RAG 知識庫,可在任何 .py 程式中呼叫)。
 
+> **想把 PDF/Word/Excel/HTML 自動拆解成知識樹?** 見
+> [`km_pipeline/`](km_pipeline/README.md):輸入文件,自動產生一份多分頁的
+> KM 知識 Excel(WBS 樹狀結構、行動樹、康乃爾/SMART/CODE 筆記),
+> 分頁結構固定、有索引頁,方便直接交給 Claude 讀取應用。
+
 **導覽**:[檔案索引 INDEX.md](INDEX.md) ・
 [GitHub 整理指南](docs/github-organization-guide.md)(命名/編碼/分類/連結規則)・
 [Ollama 環境說明(HTML)](docs/ollama-guide.html) ・

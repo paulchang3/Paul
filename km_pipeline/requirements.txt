@@ -1,0 +1,2 @@
+openpyxl   # 讀 .xlsx 輸入、寫出多分頁 .xlsx(必備)
+pypdf      # 讀 .pdf 輸入(只有要處理 PDF 才需要)
