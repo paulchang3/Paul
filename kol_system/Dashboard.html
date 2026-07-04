@@ -1,0 +1,856 @@
+<!DOCTYPE html>
+<html>
+<head>
+<base target="_top">
+<meta charset="UTF-8">
+<style>
+  :root{
+    --ink:#14213D; --teal:#0E7C7B; --teal-dark:#0A5D5C;
+    --line:#D9DEE6; --muted:#5B6472; --amber:#B5792B; --bg:#F5F6F8;
+  }
+  *{box-sizing:border-box;}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans TC',sans-serif;
+    margin:0; background:var(--bg); color:var(--ink); font-size:13px;
+  }
+  .topbar{
+    background:var(--ink); color:#fff; padding:12px 16px;
+    display:flex; align-items:center; justify-content:space-between;
+  }
+  .topbar h1{font-size:14px; margin:0; font-weight:700;}
+  .topbar .ver{font-size:10px; color:#8695A8; font-family:monospace;}
+  .tabs{display:flex; background:#fff; border-bottom:1px solid var(--line);}
+  .tab{
+    flex:1; text-align:center; padding:9px 2px; cursor:pointer;
+    font-size:11px; color:var(--muted); border-bottom:2px solid transparent;
+  }
+  .tab.active{color:var(--teal-dark); border-bottom-color:var(--teal); font-weight:700;}
+  .panel{display:none; padding:14px 16px;}
+  .panel.active{display:block;}
+  .card{
+    background:#fff; border:1px solid var(--line); border-radius:6px;
+    padding:12px 14px; margin-bottom:12px;
+  }
+  .card h3{margin:0 0 8px; font-size:12.5px; color:var(--ink);}
+  button{
+    font-family:inherit; cursor:pointer; border:none; border-radius:5px;
+    padding:8px 12px; font-size:12px; font-weight:600;
+  }
+  .btn-primary{background:var(--teal); color:#fff; width:100%;}
+  .btn-primary:hover{background:var(--teal-dark);}
+  .btn-outline{background:#fff; border:1px solid var(--line)!important; color:var(--ink); width:100%;}
+  .btn-danger{background:#B23B3B; color:#fff;}
+  input, select, textarea{
+    width:100%; padding:7px 8px; border:1px solid var(--line); border-radius:5px;
+    font-size:12.5px; margin-bottom:8px; font-family:inherit;
+  }
+  label{font-size:11px; color:var(--muted); display:block; margin-bottom:3px;}
+  .status-box{
+    padding:10px 12px; border-radius:6px; font-size:12px; margin-bottom:10px;
+    white-space:pre-wrap; line-height:1.6;
+  }
+  .status-ok{background:#EAF6F3; color:var(--teal-dark); border:1px solid #BFE3DB;}
+  .status-warn{background:#FBF2E4; color:#8A5A1E; border:1px solid #EBCFA0;}
+  .status-idle{background:#EEF1F5; color:var(--muted);}
+  .kol-item{
+    border:1px solid var(--line); border-radius:6px; padding:10px 12px;
+    margin-bottom:8px; cursor:pointer; background:#fff;
+  }
+  .kol-item:hover{border-color:var(--teal);}
+  .kol-item .name{font-weight:700; font-size:13px;}
+  .kol-item .meta{font-size:11px; color:var(--muted); margin-top:2px;}
+  .tier{
+    display:inline-block; font-size:10px; padding:1px 7px; border-radius:10px;
+    color:#fff; margin-right:6px;
+  }
+  .tier-A{background:var(--teal);} .tier-B{background:#2C4A6E;} .tier-C{background:var(--muted);}
+  .chip{
+    display:inline-block; font-size:10px; padding:1px 7px; border-radius:10px;
+    margin-right:6px; border:1px solid var(--line); color:var(--muted);
+  }
+  .chip.st-已發布{background:#EAF6F3; color:var(--teal-dark); border-color:#BFE3DB;}
+  .chip.st-草稿{background:#FBF2E4; color:#8A5A1E; border-color:#EBCFA0;}
+  .chip.st-構想{background:#EEF1F5;}
+  .search-row{display:flex; gap:6px; margin-bottom:10px;}
+  .search-row input{margin-bottom:0;}
+  .search-row select{margin-bottom:0; width:90px;}
+  .empty{color:var(--muted); font-size:12px; text-align:center; padding:16px 0;}
+  .row2{display:flex; gap:8px;}
+  .row2 > div{flex:1;}
+  .link-back{font-size:11px; color:var(--teal-dark); cursor:pointer; margin-bottom:10px; display:inline-block;}
+  .stat-grid{display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; margin-bottom:12px;}
+  .stat{
+    background:#fff; border:1px solid var(--line); border-radius:6px;
+    padding:10px 8px; text-align:center;
+  }
+  .stat .num{font-size:20px; font-weight:800; color:var(--ink); line-height:1.2;}
+  .stat .num.warn{color:var(--amber);}
+  .stat .lbl{font-size:10px; color:var(--muted); margin-top:2px;}
+  .bar-row{display:flex; align-items:center; gap:8px; margin-bottom:6px; font-size:11px;}
+  .bar-row .bl{width:86px; color:var(--muted); text-align:right;}
+  .bar-track{flex:1; background:#EEF1F5; border-radius:4px; height:14px; overflow:hidden;}
+  .bar-fill{height:100%; background:var(--teal); border-radius:4px; min-width:2px;}
+  .bar-fill.b2{background:#2C4A6E;} .bar-fill.b3{background:var(--amber);}
+  .bar-row .bn{width:22px; font-weight:700;}
+  .section-label{
+    font-size:11px; font-weight:700; color:var(--muted); text-transform:uppercase;
+    letter-spacing:.06em; margin:14px 0 8px;
+  }
+  .check-row{display:flex; align-items:center; gap:8px; font-size:12px; margin-bottom:6px;}
+  .check-row input{width:auto; margin:0;}
+  .trig-row{display:flex; justify-content:space-between; font-size:12px; padding:5px 0; border-bottom:1px solid var(--line);}
+  .trig-on{color:var(--teal-dark); font-weight:700;}
+  .trig-off{color:var(--amber); font-weight:700;}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <h1>🗂 KOL 管理主控台</h1>
+  <span class="ver" id="verTag">v...</span>
+</div>
+
+<div class="tabs">
+  <div class="tab active" data-panel="panel-overview">總覽</div>
+  <div class="tab" data-panel="panel-list">KOL</div>
+  <div class="tab" data-panel="panel-followup">待跟進</div>
+  <div class="tab" data-panel="panel-content">內容</div>
+  <div class="tab" data-panel="panel-auto">自動化</div>
+</div>
+
+<!-- ============ 總覽 ============ -->
+<div class="panel active" id="panel-overview">
+  <div class="stat-grid" id="statGrid"><div class="empty" style="grid-column:1/4;">載入中…</div></div>
+  <div class="card">
+    <h3>合作階段漏斗（主動曝光成效）</h3>
+    <div id="stageBars"><div class="empty">載入中…</div></div>
+  </div>
+  <div class="card">
+    <h3>內容管線（被動曝光存量）</h3>
+    <div id="pipelineBars"><div class="empty">載入中…</div></div>
+    <div style="font-size:11px; color:var(--muted); margin-top:6px;" id="lastNewsletter"></div>
+  </div>
+  <button class="btn-outline" onclick="loadOverview()">↻ 重新整理</button>
+</div>
+
+<!-- ============ KOL 列表 / 新增編輯 ============ -->
+<div class="panel" id="panel-list">
+
+  <div id="listView">
+    <div class="search-row">
+      <input type="text" id="searchInput" placeholder="搜尋姓名/公司...">
+      <select id="tierFilter">
+        <option value="">全部</option>
+        <option value="A">A級</option>
+        <option value="B">B級</option>
+        <option value="C">C級</option>
+      </select>
+    </div>
+    <button class="btn-primary" onclick="showForm(null)">＋ 新增 KOL</button>
+    <div id="kolListContainer" style="margin-top:12px;">
+      <div class="empty">載入中…</div>
+    </div>
+  </div>
+
+  <div id="formView" style="display:none;">
+    <span class="link-back" onclick="backToList()">← 返回列表</span>
+    <div class="card">
+      <h3 id="formTitle">新增 KOL</h3>
+      <input type="hidden" id="f_ID">
+      <label>姓名 *</label><input id="f_姓名">
+      <div class="row2">
+        <div><label>職稱</label><input id="f_職稱"></div>
+        <div><label>公司</label><input id="f_公司"></div>
+      </div>
+      <label>等級</label>
+      <select id="f_等級(A/B/C)">
+        <option value="A">A級 — 核心合作（每14天接觸）</option>
+        <option value="B">B級 — 關係培養（每30天接觸）</option>
+        <option value="C">C級 — 曝光轉介（每季/季報維繫）</option>
+      </select>
+      <label>市場專長</label><input id="f_市場專長" placeholder="例：FDA / EU MDR / NMPA">
+      <div class="row2">
+        <div><label>接觸管道</label><input id="f_接觸管道" placeholder="LinkedIn / Email / 展會"></div>
+        <div><label>Email</label><input id="f_Email"></div>
+      </div>
+      <label>LinkedIn</label><input id="f_LinkedIn">
+      <div class="row2">
+        <div><label>訂閱電子報</label>
+          <select id="f_訂閱電子報(Y/N)"><option value="Y">Y — 收季報/電子報</option><option value="N">N</option></select>
+        </div>
+        <div><label>曝光來源</label><input id="f_曝光來源" placeholder="展會/轉介/LinkedIn/內容訂閱"></div>
+      </div>
+      <div class="row2">
+        <div><label>首次接觸日</label><input type="date" id="f_首次接觸日"></div>
+        <div><label>最近接觸日</label><input type="date" id="f_最近接觸日"></div>
+      </div>
+      <div class="row2">
+        <div><label>關係溫度 (1-5)</label><input type="number" min="1" max="5" id="f_關係溫度(1-5)"></div>
+        <div><label>合作階段 (1-4)</label><input type="number" min="1" max="4" id="f_合作階段(1-4)"></div>
+      </div>
+      <label>下次跟進日（留空由系統依等級自動排程）</label><input type="date" id="f_下次跟進日">
+      <label>下次跟進鉤子</label><input id="f_下次跟進鉤子" placeholder="例：詢問MDR過渡期準備狀況">
+      <label>備註</label><textarea id="f_備註" rows="2"></textarea>
+      <button class="btn-primary" onclick="saveKol()">儲存</button>
+    </div>
+  </div>
+
+  <div id="detailView" style="display:none;">
+    <span class="link-back" onclick="backToList()">← 返回列表</span>
+    <div class="card" id="detailCard"></div>
+    <div class="card">
+      <h3>✉️ 產生開發信草稿（Gmail）</h3>
+      <label>話術模板</label>
+      <select id="draftTemplate"></select>
+      <button class="btn-primary" onclick="createDraft()">建立 Gmail 草稿</button>
+      <div style="font-size:11px; color:var(--muted); margin-top:6px;">
+        系統會自動代入姓名／公司／鉤子，請至 Gmail 草稿匣做最後 20% 個人化再寄出。
+      </div>
+    </div>
+    <div class="card">
+      <h3>記錄一次接觸</h3>
+      <label>方式</label>
+      <select id="c_method">
+        <option>LinkedIn</option><option>Email</option><option>電話</option>
+        <option>會議/展會</option><option>電子報</option><option>其他</option>
+      </select>
+      <label>內容摘要</label><textarea id="c_summary" rows="2"></textarea>
+      <label>下一步（會自動成為下次跟進鉤子）</label><input id="c_nextStep">
+      <button class="btn-primary" onclick="logContact()">送出紀錄（自動排下次跟進）</button>
+    </div>
+    <div class="card">
+      <h3>歷史接觸紀錄</h3>
+      <div id="contactHistory"><div class="empty">載入中…</div></div>
+    </div>
+    <button class="btn-outline" onclick="editCurrent()">✎ 編輯此KOL</button>
+    <button class="btn-danger" style="width:100%; margin-top:8px;" onclick="deleteCurrent()">刪除此KOL</button>
+  </div>
+
+</div>
+
+<!-- ============ 待跟進 ============ -->
+<div class="panel" id="panel-followup">
+  <div class="card">
+    <h3>今日應跟進 / 已逾期</h3>
+    <div id="followUpContainer"><div class="empty">載入中…</div></div>
+  </div>
+  <div class="card">
+    <h3>⚠️ 關係降溫警示（超過等級門檻未接觸）</h3>
+    <div id="staleContainer"><div class="empty">載入中…</div></div>
+  </div>
+</div>
+
+<!-- ============ 內容管線 ============ -->
+<div class="panel" id="panel-content">
+  <div id="contentListView">
+    <div class="search-row">
+      <select id="contentStatusFilter" style="width:100%;">
+        <option value="">全部狀態</option>
+        <option value="構想">構想</option>
+        <option value="草稿">草稿</option>
+        <option value="已發布">已發布</option>
+      </select>
+    </div>
+    <button class="btn-primary" onclick="showContentForm(null)">＋ 新增內容項目</button>
+    <button class="btn-outline" style="margin-top:8px;" onclick="genQuarterly()">📄 產生本季季報文件</button>
+    <div id="contentListContainer" style="margin-top:12px;"><div class="empty">載入中…</div></div>
+  </div>
+
+  <div id="contentFormView" style="display:none;">
+    <span class="link-back" onclick="backToContentList()">← 返回內容列表</span>
+    <div class="card">
+      <h3 id="contentFormTitle">新增內容項目</h3>
+      <input type="hidden" id="p_ID">
+      <label>標題 *</label><input id="p_標題">
+      <div class="row2">
+        <div><label>內容支柱</label>
+          <select id="p_內容支柱">
+            <option>法規動態解讀</option><option>案例拆解</option>
+            <option>趨勢觀察</option><option>季報</option>
+            <option>演講/活動</option><option>其他</option>
+          </select>
+        </div>
+        <div><label>目標管道</label>
+          <select id="p_目標管道">
+            <option>LinkedIn</option><option>電子報</option><option>公開洞察頁</option>
+            <option>投稿媒體</option><option>演講</option><option>其他</option>
+          </select>
+        </div>
+      </div>
+      <div class="row2">
+        <div><label>狀態</label>
+          <select id="p_狀態">
+            <option>構想</option><option>草稿</option><option>已發布</option><option>已取消</option>
+          </select>
+        </div>
+        <div><label>預計發布日</label><input type="date" id="p_預計發布日"></div>
+      </div>
+      <label>實際發布日</label><input type="date" id="p_實際發布日">
+      <label>連結（發布後填入，會出現在洞察頁與電子報）</label><input id="p_連結">
+      <label>公開摘要（洞察頁/電子報顯示用，1-2句）</label><textarea id="p_公開摘要" rows="2"></textarea>
+      <label>成效備註（按讚/回覆/詢問等）</label><input id="p_成效備註">
+      <button class="btn-primary" onclick="saveContent()">儲存</button>
+      <button class="btn-danger" id="contentDeleteBtn" style="width:100%; margin-top:8px; display:none;" onclick="deleteContent()">刪除此項目</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ 自動化 ============ -->
+<div class="panel" id="panel-auto">
+
+  <div class="card">
+    <h3>⚡ 自動化排程（時間觸發器）</h3>
+    <div id="triggerStatus"><div class="empty">載入中…</div></div>
+    <button class="btn-primary" style="margin-top:10px;" onclick="setupTriggers()">啟用全部自動化</button>
+    <button class="btn-outline" style="margin-top:8px;" onclick="removeTriggers()">停用全部自動化</button>
+    <div class="section-label">立即測試（寄到自己信箱）</div>
+    <button class="btn-outline" onclick="runNow('dailyFollowUpDigest','每日跟進摘要')">📬 立即寄送：每日跟進摘要</button>
+    <button class="btn-outline" style="margin-top:8px;" onclick="runNow('weeklyIntelDigest','每週情報彙整')">📰 立即寄送：每週情報彙整</button>
+  </div>
+
+  <div class="card">
+    <h3>📮 寄送電子報（A/B級訂閱名單）</h3>
+    <div class="status-box status-idle" id="nlPreviewBox">載入收件人統計中…</div>
+    <label>主旨</label><input id="nl_subject" placeholder="例：法規動態季報 2026 Q3 — 五大市場重點">
+    <label>內文（純文字，換行會保留）</label>
+    <textarea id="nl_body" rows="6" placeholder="本季五大市場的三個重點觀察：&#10;1. ...&#10;2. ...&#10;3. ...&#10;完整內容請見附上的季報連結。"></textarea>
+    <div class="check-row"><input type="checkbox" id="nl_includeC"><label style="margin:0;" for="nl_includeC">包含 C 級名單</label></div>
+    <div class="check-row"><input type="checkbox" id="nl_includeRecent" checked><label style="margin:0;" for="nl_includeRecent">附上「近期發布」內容清單</label></div>
+    <button class="btn-primary" onclick="sendNewsletter()">寄送電子報</button>
+    <div style="font-size:11px; color:var(--muted); margin-top:6px;">
+      每位收件人會以個人化稱謂寄送，並自動寫入接觸紀錄、更新最近接觸日。
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>📅 Calendar 同步</h3>
+    <button class="btn-outline" onclick="syncCalendar()">把未來60天的跟進日同步到 Google 日曆</button>
+  </div>
+
+  <div class="card">
+    <h3>🌐 公開洞察頁（被動曝光）</h3>
+    <div class="status-box status-idle" id="webAppBox">載入中…</div>
+    <div style="font-size:11px; color:var(--muted);">
+      「內容行事曆」中狀態為「已發布」且填了公開摘要/連結的項目會自動出現在洞察頁。
+      對外公開需在部署設定選「執行身分：我／存取權：任何人」，詳見 README。
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>⚙️ 寄件與洞察頁設定</h3>
+    <label>寄件人顯示名稱</label><input id="s_SENDER_NAME">
+    <label>Email 簽名檔（第二行）</label><input id="s_SIGNATURE">
+    <label>洞察頁標題</label><input id="s_PUBLIC_TITLE">
+    <label>洞察頁副標（定位語）</label><input id="s_PUBLIC_TAGLINE">
+    <label>洞察頁聯絡 Email（訂閱入口）</label><input id="s_PUBLIC_CONTACT_EMAIL">
+    <button class="btn-outline" onclick="saveSettings()">儲存設定</button>
+  </div>
+
+  <div class="card">
+    <h3>🔧 系統檢查</h3>
+    <div class="status-box status-idle" id="sysStatusBox">尚未檢查</div>
+    <button class="btn-outline" onclick="doInit()">🚀 一鍵部署 / 初始化系統</button>
+    <button class="btn-outline" style="margin-top:8px;" onclick="doCheck()">🔍 執行自我檢查</button>
+    <button class="btn-outline" style="margin-top:8px;" onclick="doFix()">🛠 執行自動修復</button>
+  </div>
+
+</div>
+
+<script>
+  let kolCache = [];
+  let contentCache = [];
+  let currentKolId = null;
+
+  // ---------- Tabs ----------
+  document.querySelectorAll('.tab').forEach(tab=>{
+    tab.addEventListener('click', ()=>{
+      document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+      document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+      tab.classList.add('active');
+      document.getElementById(tab.dataset.panel).classList.add('active');
+      if(tab.dataset.panel === 'panel-overview') loadOverview();
+      if(tab.dataset.panel === 'panel-followup') loadFollowUps();
+      if(tab.dataset.panel === 'panel-content') loadContentList();
+      if(tab.dataset.panel === 'panel-auto') loadAutoPanel();
+    });
+  });
+
+  window.addEventListener('load', ()=>{
+    loadOverview();
+    loadKolList();
+    loadTemplates();
+    google.script.run.withSuccessHandler(s=>{
+      document.getElementById('verTag').textContent = 'v' + s.version;
+    }).api_getSystemStatus();
+  });
+
+  document.getElementById('searchInput').addEventListener('input', renderKolList);
+  document.getElementById('tierFilter').addEventListener('change', renderKolList);
+  document.getElementById('contentStatusFilter').addEventListener('change', renderContentList);
+
+  // ---------- 總覽 ----------
+  function loadOverview(){
+    google.script.run.withSuccessHandler(s=>{
+      const g = document.getElementById('statGrid');
+      g.innerHTML = [
+        tile(s.total, 'KOL 總數'),
+        tile(s.byTier.A, 'A級核心'),
+        tile(s.subscribers, '電子報訂閱'),
+        tile(s.overdue, '逾期跟進', s.overdue>0),
+        tile(s.stale, '關係降溫', s.stale>0),
+        tile(s.contacts30d, '30天接觸數')
+      ].join('');
+      const stageLabels = {1:'① 建立信任',2:'② 探索痛點',3:'③ 小規模試點',4:'④ 正式合作'};
+      const maxStage = Math.max(1, ...Object.values(s.byStage));
+      document.getElementById('stageBars').innerHTML = [1,2,3,4].map(i=>
+        bar(stageLabels[i], s.byStage[i], maxStage, '')
+      ).join('');
+      const maxPipe = Math.max(1, s.pipeline['構想'], s.pipeline['草稿'], s.pipeline['已發布']);
+      document.getElementById('pipelineBars').innerHTML =
+        bar('構想', s.pipeline['構想'], maxPipe, 'b3') +
+        bar('草稿', s.pipeline['草稿'], maxPipe, 'b2') +
+        bar('已發布(全部)', s.pipeline['已發布'], maxPipe, '') +
+        bar('近30天發布', s.published30d, maxPipe, '');
+      document.getElementById('lastNewsletter').textContent = '上次電子報：' + s.lastNewsletter;
+    }).withFailureHandler(showErr).api_getDashboardStats();
+  }
+  function tile(num, label, warn){
+    return `<div class="stat"><div class="num ${warn?'warn':''}">${num}</div><div class="lbl">${label}</div></div>`;
+  }
+  function bar(label, val, max, cls){
+    const pct = Math.round(val / max * 100);
+    return `<div class="bar-row"><div class="bl">${label}</div>
+      <div class="bar-track"><div class="bar-fill ${cls}" style="width:${pct}%;"></div></div>
+      <div class="bn">${val}</div></div>`;
+  }
+
+  // ---------- KOL List ----------
+  const KOL_FIELDS = ['ID','姓名','職稱','公司','等級(A/B/C)','市場專長','接觸管道','Email','LinkedIn',
+    '訂閱電子報(Y/N)','曝光來源','首次接觸日','最近接觸日','關係溫度(1-5)','合作階段(1-4)',
+    '下次跟進日','下次跟進鉤子','備註'];
+  const KOL_DATE_FIELDS = ['首次接觸日','最近接觸日','下次跟進日'];
+
+  function loadKolList(){
+    google.script.run.withSuccessHandler(list=>{
+      kolCache = list;
+      renderKolList();
+    }).withFailureHandler(showErr).api_getKolList();
+  }
+
+  function renderKolList(){
+    const q = document.getElementById('searchInput').value.trim().toLowerCase();
+    const tier = document.getElementById('tierFilter').value;
+    const container = document.getElementById('kolListContainer');
+    const filtered = kolCache.filter(k=>{
+      const matchQ = !q || (k['姓名']||'').toLowerCase().includes(q) || (k['公司']||'').toLowerCase().includes(q);
+      const matchTier = !tier || (k['等級(A/B/C)']||'').indexOf(tier) === 0;
+      return matchQ && matchTier;
+    });
+    if(filtered.length === 0){
+      container.innerHTML = '<div class="empty">尚無符合的 KOL，點上方「新增」開始建立名單</div>';
+      return;
+    }
+    container.innerHTML = filtered.map(k=>{
+      const tierClass = 'tier-' + (k['等級(A/B/C)']||'C').charAt(0);
+      const sub = (k['訂閱電子報(Y/N)']||'').toUpperCase()==='Y' ? ' · 📮訂閱' : '';
+      return `<div class="kol-item" onclick="openDetail('${k['ID']}')">
+        <span class="tier ${tierClass}">${(k['等級(A/B/C)']||'').charAt(0)}級</span>
+        <span class="name">${escapeHtml(k['姓名']||'')}</span>
+        <div class="meta">${escapeHtml(k['職稱']||'')} · ${escapeHtml(k['公司']||'')}${sub}</div>
+      </div>`;
+    }).join('');
+  }
+
+  function showForm(kol){
+    document.getElementById('listView').style.display = 'none';
+    document.getElementById('detailView').style.display = 'none';
+    document.getElementById('formView').style.display = 'block';
+    document.getElementById('formTitle').textContent = kol ? '編輯 KOL' : '新增 KOL';
+    KOL_FIELDS.forEach(f=>{
+      const el = document.getElementById('f_' + f);
+      if(!el) return;
+      let v = kol ? (kol[f] || '') : '';
+      if(!kol && f === '訂閱電子報(Y/N)') v = 'Y';
+      if(KOL_DATE_FIELDS.includes(f) && v) v = formatDateForInput(v);
+      el.value = v;
+    });
+  }
+
+  function backToList(){
+    document.getElementById('listView').style.display = 'block';
+    document.getElementById('formView').style.display = 'none';
+    document.getElementById('detailView').style.display = 'none';
+    loadKolList();
+  }
+
+  function saveKol(){
+    const kol = {};
+    KOL_FIELDS.forEach(f=>{
+      const el = document.getElementById('f_' + f);
+      if(el) kol[f] = el.value;
+    });
+    if(!kol['姓名']){ alert('請輸入姓名'); return; }
+    google.script.run.withSuccessHandler(()=>{
+      backToList();
+    }).withFailureHandler(showErr).api_saveKol(kol);
+  }
+
+  function openDetail(id){
+    const k = kolCache.find(x=>x['ID']===id);
+    if(!k) return;
+    currentKolId = id;
+    document.getElementById('listView').style.display = 'none';
+    document.getElementById('formView').style.display = 'none';
+    document.getElementById('detailView').style.display = 'block';
+    const tierClass = 'tier-' + (k['等級(A/B/C)']||'C').charAt(0);
+    document.getElementById('detailCard').innerHTML = `
+      <span class="tier ${tierClass}">${(k['等級(A/B/C)']||'').charAt(0)}級</span>
+      <h3 style="display:inline;">${escapeHtml(k['姓名']||'')}</h3>
+      <div class="meta" style="margin-top:6px; color:var(--muted); font-size:12px; line-height:1.8;">
+        ${escapeHtml(k['職稱']||'')} · ${escapeHtml(k['公司']||'')}<br>
+        市場專長：${escapeHtml(k['市場專長']||'—')}<br>
+        Email：${escapeHtml(k['Email']||'—')}　LinkedIn：${escapeHtml(k['LinkedIn']||'—')}<br>
+        訂閱電子報：${escapeHtml(k['訂閱電子報(Y/N)']||'—')}　曝光來源：${escapeHtml(k['曝光來源']||'—')}<br>
+        關係溫度：${k['關係溫度(1-5)']||'—'} / 5　合作階段：${k['合作階段(1-4)']||'—'} / 4<br>
+        最近接觸：${formatDateDisplay(k['最近接觸日'])}　下次跟進：${formatDateDisplay(k['下次跟進日'])}<br>
+        鉤子：${escapeHtml(k['下次跟進鉤子']||'—')}
+      </div>`;
+    loadContactHistory(id);
+  }
+
+  function editCurrent(){
+    const k = kolCache.find(x=>x['ID']===currentKolId);
+    document.getElementById('detailView').style.display = 'none';
+    showForm(k);
+  }
+
+  function deleteCurrent(){
+    if(!confirm('確定要刪除這位 KOL 嗎？此動作無法復原。')) return;
+    google.script.run.withSuccessHandler(()=>{
+      backToList();
+    }).withFailureHandler(showErr).api_deleteKol(currentKolId);
+  }
+
+  function logContact(){
+    const entry = {
+      kolId: currentKolId,
+      date: new Date().toISOString(),
+      method: document.getElementById('c_method').value,
+      summary: document.getElementById('c_summary').value,
+      nextStep: document.getElementById('c_nextStep').value
+    };
+    google.script.run.withSuccessHandler(r=>{
+      document.getElementById('c_summary').value = '';
+      document.getElementById('c_nextStep').value = '';
+      if(r && r.nextFollowUp) alert('已記錄。下次跟進日：' + r.nextFollowUp);
+      loadContactHistory(currentKolId);
+      loadKolList();
+    }).withFailureHandler(showErr).api_logContact(entry);
+  }
+
+  function loadContactHistory(id){
+    google.script.run.withSuccessHandler(list=>{
+      const el = document.getElementById('contactHistory');
+      if(!list.length){ el.innerHTML = '<div class="empty">尚無接觸紀錄</div>'; return; }
+      el.innerHTML = list.slice().reverse().map(c=>`
+        <div style="border-bottom:1px solid var(--line); padding:6px 0; font-size:11.5px;">
+          <b>${formatDateDisplay(c['日期'])}</b> · ${escapeHtml(c['接觸方式']||'')}<br>
+          ${escapeHtml(c['內容摘要']||'')}<br>
+          <span style="color:var(--muted);">下一步：${escapeHtml(c['下一步']||'—')}</span>
+        </div>`).join('');
+    }).withFailureHandler(showErr).api_getContactsByKol(id);
+  }
+
+  // ---------- 開發信草稿 ----------
+  function loadTemplates(){
+    google.script.run.withSuccessHandler(keys=>{
+      document.getElementById('draftTemplate').innerHTML =
+        keys.map(k=>`<option>${escapeHtml(k)}</option>`).join('');
+    }).api_getOutreachTemplates();
+  }
+
+  function createDraft(){
+    const tpl = document.getElementById('draftTemplate').value;
+    google.script.run.withSuccessHandler(r=>{
+      alert('✅ 草稿已建立（收件人：' + r.to + '）\n請至 Gmail 草稿匣個人化後寄出。');
+    }).withFailureHandler(showErr).api_draftOutreach(currentKolId, tpl);
+  }
+
+  // ---------- Follow-ups ----------
+  function loadFollowUps(){
+    google.script.run.withSuccessHandler(r=>{
+      const el = document.getElementById('followUpContainer');
+      if(!r.due.length){ el.innerHTML = '<div class="empty">目前沒有需要跟進的 KOL 🎉</div>'; }
+      else {
+        el.innerHTML = r.due.map(k=>`
+          <div class="kol-item" onclick="switchToDetail('${k['ID']}')">
+            <span class="tier tier-${(k['等級(A/B/C)']||'C').charAt(0)}">${(k['等級(A/B/C)']||'').charAt(0)}級</span>
+            <span class="name">${escapeHtml(k['姓名']||'')}</span>
+            <div class="meta">跟進日：${formatDateDisplay(k['下次跟進日'])} · 鉤子：${escapeHtml(k['下次跟進鉤子']||'—')}</div>
+          </div>`).join('');
+      }
+      const st = document.getElementById('staleContainer');
+      if(!r.stale.length){ st.innerHTML = '<div class="empty">沒有降溫中的關係 👍</div>'; }
+      else {
+        st.innerHTML = r.stale.map(k=>`
+          <div class="kol-item" onclick="switchToDetail('${k['ID']}')">
+            <span class="tier tier-${(k['等級(A/B/C)']||'C').charAt(0)}">${(k['等級(A/B/C)']||'').charAt(0)}級</span>
+            <span class="name">${escapeHtml(k['姓名']||'')}</span>
+            <div class="meta" style="color:var(--amber);">
+              ${k['_降溫天數']===-1 ? '從未記錄接觸' : k['_降溫天數'] + ' 天未接觸'}</div>
+          </div>`).join('');
+      }
+    }).withFailureHandler(showErr).api_getDueFollowUps();
+  }
+
+  function switchToDetail(id){
+    document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+    document.querySelector('[data-panel="panel-list"]').classList.add('active');
+    document.getElementById('panel-list').classList.add('active');
+    loadKolList();
+    setTimeout(()=>openDetail(id), 300);
+  }
+
+  // ---------- 內容管線 ----------
+  function loadContentList(){
+    google.script.run.withSuccessHandler(list=>{
+      contentCache = list;
+      renderContentList();
+    }).withFailureHandler(showErr).api_getContentList();
+  }
+
+  function renderContentList(){
+    const st = document.getElementById('contentStatusFilter').value;
+    const container = document.getElementById('contentListContainer');
+    const filtered = contentCache.filter(c=> !st || c['狀態']===st);
+    if(!filtered.length){
+      container.innerHTML = '<div class="empty">尚無內容項目。建議：每週從情報彙整信挑1-2則建立「構想」。</div>';
+      return;
+    }
+    container.innerHTML = filtered.map(c=>`
+      <div class="kol-item" onclick="showContentFormById('${c['ID']}')">
+        <span class="chip st-${escapeHtml(c['狀態']||'構想')}">${escapeHtml(c['狀態']||'')}</span>
+        <span class="name">${escapeHtml(c['標題']||'')}</span>
+        <div class="meta">${escapeHtml(c['內容支柱']||'')} → ${escapeHtml(c['目標管道']||'')} ·
+          ${c['狀態']==='已發布' ? '發布 ' + formatDateDisplay(c['實際發布日']) : '預計 ' + formatDateDisplay(c['預計發布日'])}</div>
+      </div>`).join('');
+  }
+
+  const CONTENT_FIELDS = ['ID','標題','內容支柱','目標管道','狀態','預計發布日','實際發布日','連結','公開摘要','成效備註'];
+  const CONTENT_DATE_FIELDS = ['預計發布日','實際發布日'];
+
+  function showContentFormById(id){
+    showContentForm(contentCache.find(c=>c['ID']===id));
+  }
+
+  function showContentForm(item){
+    document.getElementById('contentListView').style.display = 'none';
+    document.getElementById('contentFormView').style.display = 'block';
+    document.getElementById('contentFormTitle').textContent = item ? '編輯內容項目' : '新增內容項目';
+    document.getElementById('contentDeleteBtn').style.display = item ? 'block' : 'none';
+    CONTENT_FIELDS.forEach(f=>{
+      const el = document.getElementById('p_' + f);
+      if(!el) return;
+      let v = item ? (item[f] || '') : '';
+      if(CONTENT_DATE_FIELDS.includes(f) && v) v = formatDateForInput(v);
+      el.value = v;
+    });
+  }
+
+  function backToContentList(){
+    document.getElementById('contentListView').style.display = 'block';
+    document.getElementById('contentFormView').style.display = 'none';
+    loadContentList();
+  }
+
+  function saveContent(){
+    const item = {};
+    CONTENT_FIELDS.forEach(f=>{
+      const el = document.getElementById('p_' + f);
+      if(el) item[f] = el.value;
+    });
+    if(!item['標題']){ alert('請輸入標題'); return; }
+    google.script.run.withSuccessHandler(()=>{
+      backToContentList();
+    }).withFailureHandler(showErr).api_saveContent(item);
+  }
+
+  function deleteContent(){
+    const id = document.getElementById('p_ID').value;
+    if(!id || !confirm('確定要刪除這個內容項目嗎？')) return;
+    google.script.run.withSuccessHandler(()=>{
+      backToContentList();
+    }).withFailureHandler(showErr).api_deleteContent(id);
+  }
+
+  function genQuarterly(){
+    google.script.run.withSuccessHandler(r=>{
+      alert((r.status==='existing' ? 'ℹ️ 本季季報已存在：\n' : '✅ 已建立季報文件：\n') + r.name + '\n\n' + r.url);
+    }).withFailureHandler(showErr).api_generateQuarterlyReport();
+  }
+
+  // ---------- 自動化 ----------
+  function loadAutoPanel(){
+    loadTriggerStatus();
+    loadNewsletterPreview();
+    loadWebAppInfo();
+    loadSettings();
+  }
+
+  function loadTriggerStatus(){
+    google.script.run.withSuccessHandler(list=>{
+      document.getElementById('triggerStatus').innerHTML = list.map(t=>`
+        <div class="trig-row">
+          <span>${escapeHtml(t.label)}</span>
+          <span class="${t.enabled?'trig-on':'trig-off'}">${t.enabled?'✓ 啟用中':'未啟用'}</span>
+        </div>`).join('');
+    }).withFailureHandler(showErr).api_getTriggerStatus();
+  }
+
+  function setupTriggers(){
+    google.script.run.withSuccessHandler(r=>{
+      alert('⚡ 已啟用：\n' + r.enabled.join('\n'));
+      loadTriggerStatus();
+    }).withFailureHandler(showErr).api_setupTriggers();
+  }
+
+  function removeTriggers(){
+    if(!confirm('確定要停用全部自動化排程嗎？')) return;
+    google.script.run.withSuccessHandler(()=>{
+      loadTriggerStatus();
+    }).withFailureHandler(showErr).api_removeTriggers();
+  }
+
+  function runNow(fn, label){
+    google.script.run.withSuccessHandler(()=>{
+      alert('✅ 已執行「' + label + '」，請檢查你的信箱（若無待辦/新聞可能不寄送，見系統日誌）。');
+    }).withFailureHandler(showErr)[fn]();
+  }
+
+  function loadNewsletterPreview(){
+    const includeC = document.getElementById('nl_includeC').checked;
+    google.script.run.withSuccessHandler(p=>{
+      const box = document.getElementById('nlPreviewBox');
+      box.className = 'status-box ' + (p.count ? 'status-ok' : 'status-warn');
+      box.textContent = '收件人：' + p.count + ' 位（今日 Gmail 剩餘額度 ' + p.remainingQuota + '）' +
+        (p.sample.length ? '\n' + p.sample.join('\n') + (p.count > 10 ? '\n…' : '') : '\n（把 KOL 的「訂閱電子報(Y/N)」設為 Y 並填 Email）');
+    }).withFailureHandler(showErr).api_previewNewsletter(includeC);
+  }
+  document.getElementById('nl_includeC').addEventListener('change', loadNewsletterPreview);
+
+  function sendNewsletter(){
+    const payload = {
+      subject: document.getElementById('nl_subject').value.trim(),
+      body: document.getElementById('nl_body').value.trim(),
+      includeC: document.getElementById('nl_includeC').checked,
+      includeRecent: document.getElementById('nl_includeRecent').checked
+    };
+    if(!payload.subject || !payload.body){ alert('請填寫主旨與內文'); return; }
+    if(!confirm('確定要寄送電子報「' + payload.subject + '」給訂閱名單嗎？')) return;
+    google.script.run.withSuccessHandler(r=>{
+      alert('📮 寄送完成：成功 ' + r.sent + ' 封' +
+        (r.failed.length ? '\n失敗：\n' + r.failed.join('\n') : ''));
+      loadNewsletterPreview();
+    }).withFailureHandler(showErr).api_sendNewsletter(payload);
+  }
+
+  function syncCalendar(){
+    google.script.run.withSuccessHandler(r=>{
+      alert('📅 已建立 ' + r.created + ' 個跟進事件（已存在的不重複建立）');
+    }).withFailureHandler(showErr).api_syncFollowUpsToCalendar();
+  }
+
+  function loadWebAppInfo(){
+    google.script.run.withSuccessHandler(s=>{
+      const box = document.getElementById('webAppBox');
+      if(s.webAppUrl){
+        box.className = 'status-box status-ok';
+        box.textContent = '洞察頁網址（分享用）：\n' + s.webAppUrl + '?view=insights';
+      } else {
+        box.className = 'status-box status-warn';
+        box.textContent = '尚未部署為 Web App。\n指令碼編輯器 →「部署」→「新增部署作業」→ 網頁應用程式。';
+      }
+    }).withFailureHandler(showErr).api_getSystemStatus();
+  }
+
+  const SETTING_KEYS = ['SENDER_NAME','SIGNATURE','PUBLIC_TITLE','PUBLIC_TAGLINE','PUBLIC_CONTACT_EMAIL'];
+  function loadSettings(){
+    google.script.run.withSuccessHandler(s=>{
+      SETTING_KEYS.forEach(k=>{
+        const el = document.getElementById('s_' + k);
+        if(el) el.value = s[k] || '';
+      });
+    }).withFailureHandler(showErr).api_getSettings();
+  }
+  function saveSettings(){
+    const s = {};
+    SETTING_KEYS.forEach(k=>{
+      const el = document.getElementById('s_' + k);
+      if(el) s[k] = el.value;
+    });
+    google.script.run.withSuccessHandler(()=>{
+      alert('✅ 設定已儲存');
+    }).withFailureHandler(showErr).api_saveSettings(s);
+  }
+
+  // ---------- 系統檢查 ----------
+  function doInit(){
+    setBoxLoading('部署中，請稍候…（會建立 Sheet 分頁與 Drive 資料夾）');
+    google.script.run.withSuccessHandler(()=>{
+      const box = document.getElementById('sysStatusBox');
+      box.className = 'status-box status-ok';
+      box.textContent = '✅ 初始化完成';
+      loadWebAppInfo();
+    }).withFailureHandler(showErr).api_runInitialize();
+  }
+
+  function doCheck(){
+    setBoxLoading('檢查中…');
+    google.script.run.withSuccessHandler(r=>{
+      const box = document.getElementById('sysStatusBox');
+      if(r.ok){
+        box.className = 'status-box status-ok';
+        box.textContent = '✅ 系統結構完整正常\n\n' + r.details.map(d=>'・'+d).join('\n');
+      } else {
+        box.className = 'status-box status-warn';
+        box.textContent = '⚠️ 發現問題：\n' + r.issues.map(i=>'・'+i).join('\n') + '\n\n可點「自動修復」修正';
+      }
+    }).withFailureHandler(showErr).api_runSelfCheck();
+  }
+
+  function doFix(){
+    setBoxLoading('修復中…');
+    google.script.run.withSuccessHandler(r=>{
+      const box = document.getElementById('sysStatusBox');
+      box.className = 'status-box status-ok';
+      box.textContent = r.fixed.length
+        ? '🛠 已修復：\n' + r.fixed.map(f=>'・'+f).join('\n')
+        : '沒有發現需要修復的項目';
+    }).withFailureHandler(showErr).api_runAutoFix();
+  }
+
+  function setBoxLoading(text){
+    const box = document.getElementById('sysStatusBox');
+    box.className = 'status-box status-idle';
+    box.textContent = '⏳ ' + text;
+  }
+
+  // ---------- Helpers ----------
+  function escapeHtml(s){
+    return String(s==null?'':s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+  function formatDateForInput(v){
+    try{ const d = new Date(v); if(isNaN(d)) return ''; return d.toISOString().slice(0,10); }catch(e){ return ''; }
+  }
+  function formatDateDisplay(v){
+    if(!v) return '—';
+    try{ const d = new Date(v); if(isNaN(d)) return v; return d.toLocaleDateString(); }catch(e){ return v; }
+  }
+  function showErr(err){
+    alert('發生錯誤：' + (err && err.message ? err.message : err));
+  }
+</script>
+
+</body>
+</html>
