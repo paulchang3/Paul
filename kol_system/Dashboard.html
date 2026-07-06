@@ -309,6 +309,17 @@
   </div>
 
   <div class="card">
+    <h3>📡 情報來源（RSS）連線檢查</h3>
+    <div class="status-box status-idle" id="intelCheckBox">尚未檢查。會逐一測試「情報來源」分頁每列的連線與格式，並把結果寫回「連線狀態」欄。</div>
+    <button class="btn-primary" onclick="checkIntel()">執行連線檢查</button>
+    <button class="btn-outline" style="margin-top:8px;" onclick="addRecommended()">＋ 補充建議來源（arXiv TUS / ITRUSST 等）</button>
+    <div style="font-size:11px; color:var(--muted); margin-top:6px;">
+      網站沒有 RSS 時（如 ITRUSST 官網）：① 改用 arXiv 關鍵字/作者 feed（README 附網址範本，可直接貼）；
+      ② Google Scholar Alert（無 RSS，只能 Email 通知）；③ 用 rss.app / FetchRSS / PolitePol 把網頁轉成自訂 RSS 再貼入。
+    </div>
+  </div>
+
+  <div class="card">
     <h3>📮 寄送電子報（A/B級訂閱名單）</h3>
     <div class="status-box status-idle" id="nlPreviewBox">載入收件人統計中…</div>
     <label>主旨</label><input id="nl_subject" placeholder="例：法規動態季報 2026 Q3 — 五大市場重點">
@@ -357,6 +368,31 @@
 </div>
 
 <script>
+  // ---------- 預覽模式防呆 ----------
+  // 此 GUI 只有兩個正式入口：試算表選單的側邊欄、部署後的 Web App 網址。
+  // 若直接用瀏覽器開啟此檔案（GitHub 下載/雙擊），google.script 不存在，
+  // 這裡改以預覽模式顯示介面並掛上警示橫幅，而不是整頁報錯。
+  (function(){
+    if (typeof google !== 'undefined' && google.script && google.script.run) return;
+    const chainProxy = new Proxy({}, {
+      get: function(target, prop){
+        if (prop === 'withSuccessHandler' || prop === 'withFailureHandler') {
+          return function(){ return chainProxy; };
+        }
+        return function(){};
+      }
+    });
+    window.google = { script: { run: chainProxy } };
+    document.addEventListener('DOMContentLoaded', function(){
+      const bar = document.createElement('div');
+      bar.style.cssText = 'background:#B5792B;color:#fff;padding:10px 14px;font-size:12px;line-height:1.7;';
+      bar.innerHTML = '⚠️ <b>預覽模式（未連接資料）</b>：你是直接用瀏覽器開啟這個 HTML 檔案。'
+        + '正式使用請把檔案貼入 Apps Script 專案，然後從 Google 試算表選單'
+        + '「🗂 KOL管理系統 → 🖥 開啟管理主控台」開啟（部署步驟見 README）。';
+      document.body.insertBefore(bar, document.body.firstChild);
+    });
+  })();
+
   let kolCache = [];
   let contentCache = [];
   let currentKolId = null;
@@ -726,6 +762,29 @@
     google.script.run.withSuccessHandler(()=>{
       alert('✅ 已執行「' + label + '」，請檢查你的信箱（若無待辦/新聞可能不寄送，見系統日誌）。');
     }).withFailureHandler(showErr)[fn]();
+  }
+
+  function checkIntel(){
+    const box = document.getElementById('intelCheckBox');
+    box.className = 'status-box status-idle';
+    box.textContent = '⏳ 逐一測試連線中（來源多時需數十秒）…';
+    google.script.run.withSuccessHandler(list=>{
+      if(!list.length){
+        box.className = 'status-box status-warn';
+        box.textContent = '「情報來源」分頁沒有任何來源，可點下方「補充建議來源」。';
+        return;
+      }
+      const bad = list.filter(r=>r.status.indexOf('✅')!==0).length;
+      box.className = 'status-box ' + (bad ? 'status-warn' : 'status-ok');
+      box.textContent = list.map(r=>(r.enabled?'[啟用] ':'[停用] ')+r.name+'\n　→ '+r.status).join('\n') +
+        (bad ? '\n\n有 ' + bad + ' 個來源異常，處理方式見卡片下方說明與 README。' : '');
+    }).withFailureHandler(showErr).api_checkIntelSources();
+  }
+
+  function addRecommended(){
+    google.script.run.withSuccessHandler(r=>{
+      alert(r.added ? '✅ 已加入 ' + r.added + ' 個建議來源，建議接著執行連線檢查' : 'ℹ️ 建議來源皆已存在');
+    }).withFailureHandler(showErr).api_addRecommendedSources();
   }
 
   function loadNewsletterPreview(){

@@ -9,6 +9,7 @@
 | --- | --- | --- |
 | 被動曝光 | 內容行事曆（構想→草稿→已發布 管線） | 主控台「內容」分頁管理 |
 | 被動曝光 | RSS 情報彙整：抓取「情報來源」分頁的 RSS，彙整寄給自己 | 每週一 08:00 觸發器 |
+| 被動曝光 | **情報來源連線檢查（v2.1）**：逐一測試每個 RSS 的連線與格式，結果寫回「連線狀態」欄 | 主控台/選單一鍵；每週彙整也會自動更新狀態 |
 | 被動曝光 | 法規動態季報文件自動生成（由範本複製到季報資料夾） | 每季首日 09:00 觸發器 + 一鍵 |
 | 被動曝光 | 電子報群發：對「訂閱電子報=Y」的 A/B 級 KOL 個人化寄送，自動寫回接觸紀錄與最近接觸日 | 主控台一鍵（寄送前檢查 Gmail 額度） |
 | 被動曝光 | 公開洞察頁（Web App）：自動列出「已發布」內容 + 季報訂閱入口 | 全自動（取代 Google Sites） |
@@ -70,6 +71,48 @@
 | 外部連線（UrlFetch） | 抓取 RSS 情報源 |
 | Drive / Docs | 資料夾結構、季報範本與季報文件生成 |
 | 觸發器（ScriptApp） | 建立/移除每日、每週、每季的自動排程 |
+
+## 疑難排解
+
+### Q1：打開主控台看到的是「原始碼」，沒有 GUI？
+
+`Dashboard.html` 這類檔案**不能直接打開**——在 GitHub 頁面、Raw 連結、下載後雙擊、或 Apps Script 編輯器裡看到的，本來就是原始碼。GUI 只存在於兩個入口：
+
+1. **試算表側邊欄**：Google 試算表上方選單「🗂 KOL管理系統」→「🖥 開啟管理主控台」（前提：`Dashboard` HTML 檔已貼入**該試算表綁定的** Apps Script 專案並儲存）。
+2. **Web App 網址**：指令碼編輯器「部署」→「新增部署作業」→「網頁應用程式」後產生的 `https://script.google.com/macros/s/…/exec` 網址。
+
+檢查順序：
+- 選單裡沒有「🗂 KOL管理系統」→ Code.gs 沒貼好或沒存檔，重新整理試算表頁面。
+- 點選單報「找不到 Dashboard」→ HTML 檔名必須是 `Dashboard`（無副檔名），且與 Code.gs 在同一個專案。
+- 確認你是從試算表的「擴充功能 → Apps Script」進入的專案，而不是 Drive 新增的獨立 Apps Script 專案。
+- v2.1 起，若你直接用瀏覽器開啟 HTML 檔，會看到帶橘色警示條的「預覽模式」介面（不連資料），提示你改用正式入口。
+
+### Q2：某個情報來源連不上（例如 ITRUSST 官網沒有 RSS）？
+
+先用連線檢查定位問題：主控台「自動化」分頁 →「📡 執行連線檢查」（或試算表選單「📡 檢查情報來源連線」）。每個來源會得到一個狀態並寫回「情報來源」分頁：
+
+| 狀態 | 意義 | 處理 |
+| --- | --- | --- |
+| ✅ 正常（N 則） | 可連線、可解析 | 不用處理 |
+| ❌ HTTP 404 | 網址不存在 | 檢查網址拼字，或該站已改版 |
+| ❌ HTTP 403 | 站方拒絕程式存取 | 換來源或用轉RSS工具 |
+| ❌ 非 RSS/Atom 格式 | 填的是一般網頁網址，不是 feed | 用下面三種替代方案 |
+| ⏸ 未填網址 | 只是佔位列 | 填入網址後把啟用改 Y |
+
+**網站沒有提供 RSS 時的三種替代方案（以 ITRUSST 為例）：**
+
+1. **arXiv feed（推薦，可直接貼入「情報來源」）**——arXiv API 回傳標準 Atom，系統原生支援：
+   - 關鍵字 ITRUSST：
+     `https://export.arxiv.org/api/query?search_query=all:ITRUSST&sortBy=submittedDate&sortOrder=descending&max_results=10`
+   - 關鍵字 Transcranial Ultrasonic Stimulation：
+     `https://export.arxiv.org/api/query?search_query=all:%22transcranial+ultrasonic+stimulation%22&sortBy=submittedDate&sortOrder=descending&max_results=15`
+   - 追蹤作者（格式 `au:姓氏_名字首字母`，例如 Jean-François Aubry / Lennart Verhagen / Kim Butts Pauly）：
+     `https://export.arxiv.org/api/query?search_query=au:aubry_j&sortBy=submittedDate&sortOrder=descending&max_results=10`
+     `https://export.arxiv.org/api/query?search_query=au:verhagen_l&sortBy=submittedDate&sortOrder=descending&max_results=10`
+     （同名作者多時可加關鍵字縮小：`search_query=au:aubry_j+AND+all:ultrasound`）
+   - v2.1 已把前兩條加入種子清單；舊系統點「＋ 補充建議來源」即可補進。
+2. **Google Scholar Alert**：建立「ITRUSST」或「Transcranial Ultrasonic Stimulation」關鍵字通知。注意 Scholar **沒有 RSS**，只能寄 Email 通知到你的信箱，無法接進本系統的每週彙整信。
+3. **網站轉 RSS 工具**：用 [rss.app](https://rss.app)、[FetchRSS](https://fetchrss.com)、[PolitePol](https://politepol.com) 等把 ITRUSST 官網頁面轉成自訂 feed，產生的網址貼入「情報來源」即可（此法同樣適用 NotebookLM / n8n / Make 等其他工作流）。免費方案通常有更新頻率與數量限制。
 
 ## 誠實的限制
 

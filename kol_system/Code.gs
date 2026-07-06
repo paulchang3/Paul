@@ -20,7 +20,7 @@
  ************************************************************/
 
 const CONFIG = {
-  VERSION: '2.0.0',
+  VERSION: '2.1.0',
   SHEETS: {
     KOL: 'KOL名單',
     CONTACT: '接觸紀錄',
@@ -41,7 +41,7 @@ const CONFIG = {
     'ID', '標題', '內容支柱', '目標管道', '狀態',
     '預計發布日', '實際發布日', '連結', '公開摘要', '成效備註'
   ],
-  INTEL_HEADERS: ['名稱', 'RSS網址', '市場', '啟用(Y/N)'],
+  INTEL_HEADERS: ['名稱', 'RSS網址', '市場', '啟用(Y/N)', '連線狀態', '最後檢查'],
   NEWSLETTER_HEADERS: ['時間', '主旨', '收件人數', '成功', '失敗', '備註'],
 
   // 主動曝光：等級化跟進節奏（天）
@@ -61,9 +61,12 @@ const CONFIG = {
   },
 
   // 情報來源種子（官方來源的 RSS 網址請自行確認補上）
+  // 網站沒有 RSS 時（如 ITRUSST 官網）的替代方案見 README「情報來源疑難排解」
   INTEL_DEFAULTS: [
     ['MedTech Dive（產業新聞）', 'https://www.medtechdive.com/feeds/news/', '美國/全球', 'Y'],
     ['MassDevice（產業新聞）', 'https://www.massdevice.com/feed/', '美國/全球', 'Y'],
+    ['arXiv：Transcranial Ultrasonic Stimulation', 'https://export.arxiv.org/api/query?search_query=all:%22transcranial+ultrasonic+stimulation%22&sortBy=submittedDate&sortOrder=descending&max_results=15', '學術/TUS', 'Y'],
+    ['arXiv：ITRUSST 關鍵字', 'https://export.arxiv.org/api/query?search_query=all:ITRUSST&sortBy=submittedDate&sortOrder=descending&max_results=10', '學術/TUS', 'Y'],
     ['FDA 器材動態（請填入RSS網址後啟用）', '', 'FDA', 'N'],
     ['EU MDR 動態（請填入RSS網址後啟用）', '', 'EU', 'N'],
     ['TFDA 公告（請填入RSS網址後啟用）', '', 'TW', 'N'],
@@ -111,6 +114,7 @@ function onOpen() {
     .addItem('⚡ 啟用全部自動化排程', 'menuSetupTriggers')
     .addItem('📬 立即寄送：每日跟進摘要', 'dailyFollowUpDigest')
     .addItem('📰 立即寄送：每週情報彙整', 'weeklyIntelDigest')
+    .addItem('📡 檢查情報來源連線', 'menuCheckIntel')
     .addItem('📄 產生本季季報文件', 'menuQuarterlyReport')
     .addSeparator()
     .addItem('🔍 系統自我檢查', 'runSelfCheckUI')
@@ -159,6 +163,17 @@ function menuSetupTriggers() {
 function menuQuarterlyReport() {
   const r = api_generateQuarterlyReport();
   SpreadsheetApp.getUi().alert('📄 已建立季報文件：\n' + r.name + '\n\n' + r.url);
+}
+
+function menuCheckIntel() {
+  const results = api_checkIntelSources();
+  SpreadsheetApp.getUi().alert(
+    '📡 情報來源連線檢查結果\n\n' +
+    (results.length
+      ? results.map(r => (r.enabled ? '[啟用] ' : '[停用] ') + r.name + '\n　→ ' + r.status).join('\n')
+      : '「情報來源」分頁沒有任何來源') +
+    '\n\n結果已寫入「情報來源」分頁的「連線狀態」欄。'
+  );
 }
 
 /* ================= 一鍵初始化 / 部署 ================= */
@@ -241,6 +256,19 @@ function selfCheck() {
       report.ok = false;
       report.issues.push('系統資料夾ID無效或已被刪除：' + rootId);
     }
+  }
+
+  // 情報來源結構健檢（不做網路測試；連線測試用「檢查情報來源連線」）
+  const intel = readTable_(CONFIG.SHEETS.INTEL);
+  const enabledNoUrl = intel.filter(s =>
+    String(s['啟用(Y/N)'] || '').toUpperCase() === 'Y' && !String(s['RSS網址'] || '').trim()
+  );
+  if (enabledNoUrl.length) {
+    report.ok = false;
+    report.issues.push('情報來源已啟用但未填RSS網址：' + enabledNoUrl.map(s => s['名稱']).join('、'));
+  } else {
+    const enabledCount = intel.filter(s => String(s['啟用(Y/N)'] || '').toUpperCase() === 'Y').length;
+    report.details.push('情報來源：' + enabledCount + ' 個啟用中（連線品質請另用「📡 檢查情報來源連線」測試）');
   }
 
   const active = activeTriggerHandlers_();
@@ -880,7 +908,17 @@ function api_sendNewsletter(payload) {
 function fetchFeedItems_(url) {
   const resp = UrlFetchApp.fetch(url, { muteHttpExceptions: true, followRedirects: true });
   if (resp.getResponseCode() >= 400) throw new Error('HTTP ' + resp.getResponseCode());
-  const root = XmlService.parse(resp.getContentText()).getRootElement();
+  return parseFeed_(resp.getContentText());
+}
+
+/** 解析 RSS 2.0 或 Atom（含 arXiv API 回傳的 Atom feed） */
+function parseFeed_(text) {
+  let root;
+  try {
+    root = XmlService.parse(text).getRootElement();
+  } catch (e) {
+    throw new Error('非 RSS/Atom 格式（可能是一般網頁）');
+  }
   const items = [];
 
   if (root.getName() === 'rss') {
@@ -913,8 +951,100 @@ function fetchFeedItems_(url) {
         date: toDate_(en.getChildText('updated', ns) || en.getChildText('published', ns))
       });
     });
+  } else {
+    throw new Error('非 RSS/Atom 格式（XML 根元素為 <' + root.getName() + '>）');
   }
   return items;
+}
+
+/* ---------- 情報來源連線檢查 ---------- */
+
+/** 測試單一 RSS 網址：連得上？是 RSS/Atom？有幾則？ */
+function checkIntelSource_(url) {
+  let resp;
+  try {
+    resp = UrlFetchApp.fetch(url, { muteHttpExceptions: true, followRedirects: true });
+  } catch (e) {
+    return { ok: false, message: '❌ 無法連線：' + e.message };
+  }
+  const code = resp.getResponseCode();
+  if (code >= 400) {
+    const hint = code === 404 ? '（網址不存在）' : code === 403 ? '（站方拒絕程式存取）' : '';
+    return { ok: false, message: '❌ HTTP ' + code + hint };
+  }
+  try {
+    const items = parseFeed_(resp.getContentText());
+    if (!items.length) return { ok: false, message: '⚠️ 可連線但 feed 內沒有任何項目' };
+    return { ok: true, message: '✅ 正常（' + items.length + ' 則）' };
+  } catch (e) {
+    return { ok: false, message: '❌ ' + e.message + '。請改用 arXiv feed 或網站轉RSS工具（見 README）' };
+  }
+}
+
+/**
+ * 檢查「情報來源」分頁的每一列：測試連線與格式，
+ * 把結果寫回「連線狀態」「最後檢查」欄位，並回傳報告。
+ */
+function api_checkIntelSources() {
+  const sheet = mustSheet_(CONFIG.SHEETS.INTEL);
+  const headers = getHeaders_(sheet);
+  const data = sheet.getDataRange().getValues();
+  const results = [];
+  const now = new Date();
+
+  for (let i = 1; i < data.length; i++) {
+    const row = {};
+    headers.forEach((h, j) => row[h] = data[i][j]);
+    if (!row['名稱']) continue;
+
+    const url = String(row['RSS網址'] || '').trim();
+    const status = url ? checkIntelSource_(url).message : '⏸ 未填網址';
+
+    setCellByHeader_(sheet, headers, i + 1, '連線狀態', status);
+    setCellByHeader_(sheet, headers, i + 1, '最後檢查', now);
+    results.push({
+      name: String(row['名稱']),
+      market: String(row['市場'] || ''),
+      enabled: String(row['啟用(Y/N)'] || '').toUpperCase() === 'Y',
+      status: status
+    });
+  }
+  logAction_('情報來源連線檢查',
+    results.map(r => r.name + '→' + r.status).join('；') || '無來源');
+  return results;
+}
+
+/** 把種子清單中還不存在的建議來源（arXiv TUS/ITRUSST 等）補進「情報來源」分頁 */
+function api_addRecommendedSources() {
+  const sheet = mustSheet_(CONFIG.SHEETS.INTEL);
+  const existing = readTable_(CONFIG.SHEETS.INTEL).map(r => String(r['名稱']));
+  let added = 0;
+  CONFIG.INTEL_DEFAULTS.forEach(row => {
+    if (existing.indexOf(row[0]) === -1) {
+      sheet.appendRow(row);
+      added++;
+    }
+  });
+  if (added) logAction_('補充建議情報來源', added + ' 個');
+  return { added: added };
+}
+
+/** 每週彙整抓取時順手把該來源的連線狀態寫回分頁（失敗不影響主流程） */
+function updateIntelStatus_(name, status) {
+  try {
+    const sheet = ss_().getSheetByName(CONFIG.SHEETS.INTEL);
+    if (!sheet) return;
+    const headers = getHeaders_(sheet);
+    if (headers.indexOf('連線狀態') === -1) return;
+    const data = sheet.getDataRange().getValues();
+    for (let i = 1; i < data.length; i++) {
+      if (String(data[i][0]) === String(name)) {
+        setCellByHeader_(sheet, headers, i + 1, '連線狀態', status);
+        setCellByHeader_(sheet, headers, i + 1, '最後檢查', new Date());
+        return;
+      }
+    }
+  } catch (e) { /* 狀態寫回失敗不影響寄信 */ }
 }
 
 /**
@@ -937,7 +1067,9 @@ function weeklyIntelDigest() {
 
   sources.forEach(s => {
     try {
-      const items = fetchFeedItems_(String(s['RSS網址']).trim())
+      const all = fetchFeedItems_(String(s['RSS網址']).trim());
+      updateIntelStatus_(s['名稱'], '✅ 正常（' + all.length + ' 則）');
+      const items = all
         .filter(it => !it.date || it.date.getTime() >= cutoff)
         .slice(0, 6);
       if (items.length) {
@@ -954,6 +1086,7 @@ function weeklyIntelDigest() {
       }
     } catch (e) {
       errors.push(s['名稱'] + '：' + e.message);
+      updateIntelStatus_(s['名稱'], '❌ ' + e.message);
     }
   });
 
