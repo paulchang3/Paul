@@ -1,0 +1,6 @@
+# 只推送這四個檔案到 Apps Script 專案，其餘（README、STRATEGY 等）留在 GitHub
+**/**
+!Code.gs
+!Dashboard.html
+!Insights.html
+!appsscript.json

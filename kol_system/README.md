@@ -72,6 +72,33 @@
 | Drive / Docs | 資料夾結構、季報範本與季報文件生成 |
 | 觸發器（ScriptApp） | 建立/移除每日、每週、每季的自動排程 |
 
+## 免手動貼上：用 clasp 一鍵推送（建議設定一次，終身受用）
+
+手動複製貼上容易漏段落（已經發生過一次 `readSetting_ is not defined`）。
+[clasp](https://github.com/google/clasp) 是 Google 官方的 Apps Script 命令列工具，
+設定好之後，**每次更新只要在電腦上打一行指令**，四個檔案就會完整推送到你的專案，不可能貼漏。
+
+倉庫已附好設定檔：`.clasp.json`（已填入你的專案 scriptId）與 `.claspignore`（只推送 Code.gs、Dashboard.html、Insights.html、appsscript.json 四個檔案）。
+
+### 首次設定（一次性，約 5 分鐘）
+
+1. 電腦安裝 [Node.js](https://nodejs.org)（LTS 版）。
+2. 終端機（命令提示字元）執行：`npm install -g @google/clasp`
+3. 開啟 https://script.google.com/home/usersettings ，把「Google Apps Script API」切到**開啟**。
+4. 執行 `clasp login`，瀏覽器跳出 Google 授權，用你的帳號允許。
+5. 下載本倉庫（`git clone` 或 GitHub 網頁「Code → Download ZIP」解壓縮）。
+
+### 之後每次更新（一行）
+
+```
+cd kol_system
+clasp push
+```
+
+推送完成後回到試算表重新整理即可。若我之後又幫你改了程式，你只要：`git pull`（或重新下載）→ `clasp push`，完成。
+
+> ⚠️ 注意：`clasp push` 會用本地檔案**覆蓋**雲端專案的同名檔案。如果你曾在線上編輯器手動改過程式，先備份再推。
+
 ## 疑難排解
 
 ### Q1：打開主控台看到的是「原始碼」，沒有 GUI？
