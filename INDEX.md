@@ -7,7 +7,7 @@
 | 檔案 | 最後更新 |
 | --- | --- |
 | [.gitattributes](.gitattributes) | 2026-06-13 |
-| [INDEX.md](INDEX.md) | 2026-07-01 |
+| [INDEX.md](INDEX.md) | 2026-08-01 |
 | [README.md](README.md) | 2026-06-12 |
 | [ollama_client.py](ollama_client.py) | 2026-06-11 |
 | [report.md](report.md) | (尚未提交) |
